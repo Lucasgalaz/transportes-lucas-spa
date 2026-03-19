@@ -1,0 +1,1313 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Transportes Lucas SpA</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --card: #1c1c27;
+    --border: #2a2a3a;
+    --accent: #f5a623;
+    --accent2: #e8471a;
+    --text: #f0f0f5;
+    --muted: #7a7a9a;
+    --success: #2ecc71;
+    --danger: #e74c3c;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  header {
+    background: linear-gradient(135deg, var(--surface) 0%, #1a1020 100%);
+    border-bottom: 2px solid var(--accent);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo { display: flex; align-items: center; gap: 12px; }
+  .logo-icon {
+    width: 48px; height: 48px;
+    background: #fff;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .logo-text h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 2px;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .logo-text span { font-size: 11px; color: var(--muted); letter-spacing: 1px; }
+  .header-total {
+    text-align: right;
+  }
+  .header-total .label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  .header-total .amount {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    color: var(--accent);
+  }
+  .header-total .sublabel { font-size: 9px; color: var(--muted); opacity: 0.7; }
+
+  /* NAV */
+  nav {
+    display: flex;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  nav button {
+    flex: none;
+    padding: 12px 20px;
+    background: none;
+    border: none;
+    color: #c0c0d0;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+  nav button.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  /* MAIN */
+  main { padding: 16px; max-width: 700px; margin: 0 auto; }
+
+  /* SECTION */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* CARDS */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .card-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 1px;
+    color: var(--accent);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* FORM */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-group.full { grid-column: 1 / -1; }
+  label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; }
+  input, select, textarea {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    padding: 10px 12px;
+    transition: border-color 0.2s;
+    width: 100%;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  select option { background: var(--surface); }
+  .type-toggle {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .type-btn {
+    padding: 10px;
+    border-radius: 8px;
+    border: 2px solid #444455;
+    background: var(--surface);
+    color: #d0d0e0;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+  .type-btn.active-ingreso { border-color: var(--success); color: var(--success); background: rgba(46,204,113,0.08); }
+  .type-btn.active-gasto { border-color: var(--danger); color: var(--danger); background: rgba(231,76,60,0.08); }
+
+  .btn {
+    padding: 12px 20px;
+    border-radius: 8px;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: 100%;
+    margin-top: 12px;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff;
+  }
+  .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+  .btn-danger { background: var(--danger); color: #fff; width: auto; margin-top: 0; padding: 6px 12px; font-size: 12px; }
+  .btn-export { background: var(--surface); border: 1px solid var(--border); color: var(--text); }
+
+  /* REGISTROS */
+  .mes-header {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 2px;
+    color: var(--accent);
+    padding: 14px 0 8px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .mes-total-badge {
+    font-size: 13px;
+    background: rgba(245,166,35,0.15);
+    color: var(--accent);
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+  }
+  .registro-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+    animation: fadeIn 0.3s ease;
+  }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+  .reg-left { flex: 1; }
+  .reg-detalle { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+  .reg-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 5px; }
+  .badge {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+  .badge-fecha { background: rgba(255,255,255,0.07); color: var(--muted); }
+  .badge-cliente { background: rgba(245,166,35,0.12); color: var(--accent); }
+  .badge-pago { background: rgba(46,204,113,0.12); color: var(--success); }
+  .badge-hora { background: rgba(255,255,255,0.05); color: var(--muted); }
+  .badge-boleta { background: rgba(100,150,255,0.12); color: #7ab3ff; }
+  .reg-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+  .reg-monto {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    white-space: nowrap;
+  }
+  .monto-ingreso { color: var(--success); }
+  .monto-gasto { color: var(--danger); }
+
+  /* RESUMEN STATS */
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    text-align: center;
+  }
+  .stat-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
+  .stat-value { font-family: 'Bebas Neue', sans-serif; font-size: 24px; }
+  .stat-value.green { color: var(--success); }
+  .stat-value.red { color: var(--danger); }
+  .stat-value.orange { color: var(--accent); }
+  .stat-value.white { color: var(--text); }
+
+  /* TABLA CLIENTES */
+  .cliente-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 6px;
+  }
+  .cliente-name { font-weight: 500; font-size: 14px; }
+  .cliente-stats { display: flex; gap: 14px; font-size: 13px; }
+  .cliente-monto { font-family: 'Bebas Neue', sans-serif; font-size: 17px; color: var(--accent); }
+  .cliente-count { color: var(--muted); font-size: 12px; }
+
+  /* MES SELECTOR */
+  .mes-selector {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    margin-bottom: 14px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .mes-chip {
+    flex: none;
+    padding: 6px 14px;
+    border-radius: 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .mes-chip.active { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 700; }
+
+  /* SEARCH */
+  .search-bar {
+    position: relative;
+    margin-bottom: 14px;
+  }
+  .search-bar input { padding-left: 36px; }
+  .search-bar .icon {
+    position: absolute;
+    left: 12px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--muted);
+  }
+  .empty-state .icon { font-size: 40px; margin-bottom: 10px; }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--success);
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 30px;
+    font-weight: 600;
+    font-size: 14px;
+    transition: transform 0.3s ease;
+    z-index: 9999;
+    white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.error { background: var(--danger); }
+
+  .filter-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .filter-row select { flex: 1; }
+
+  @media (max-width: 480px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" width="42" height="42">
+        <text x="6" y="74" font-family="Georgia, serif" font-size="64" fill="#333">T</text>
+        <line x1="52" y1="16" x2="52" y2="84" stroke="#333" stroke-width="2.5"/>
+        <text x="56" y="74" font-family="Georgia, serif" font-size="64" fill="#333">L</text>
+      </svg>
+    </div>
+    <div class="logo-text">
+      <h1>Transportes Lucas SpA</h1>
+      <span>GESTIÓN DE SERVICIOS</span>
+    </div>
+  </div>
+  <div class="header-total">
+    <div class="label">Balance <span id="headerMesLabel">este mes</span></div>
+    <div class="amount" id="headerBalance">$0</div>
+    <div class="sublabel" id="headerSubLabel"></div>
+  </div>
+</header>
+
+<nav>
+  <button class="active" onclick="showSection('agregar')">➕ Agregar</button>
+  <button onclick="showSection('registros')">📋 Registros</button>
+  <button onclick="showSection('resumen')">📊 Resumen</button>
+  <button onclick="showSection('clientes')">👥 Clientes</button>
+</nav>
+
+<main>
+
+  <!-- AGREGAR -->
+  <div class="section active" id="sec-agregar">
+    <div class="card">
+      <div class="card-title">📝 Nuevo Registro</div>
+
+      <div class="type-toggle">
+        <button class="type-btn active-ingreso" id="btn-ingreso" onclick="setTipo('ingreso')">✅ INGRESO</button>
+        <button class="type-btn" id="btn-gasto" onclick="setTipo('gasto')">💸 GASTO</button>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Fecha</label>
+          <input type="date" id="f-fecha">
+        </div>
+        <div class="form-group">
+          <label>Monto ($)</label>
+          <input type="number" id="f-monto" placeholder="Ej: 40000">
+        </div>
+        <div class="form-group full">
+          <label>Detalle</label>
+          <input type="text" id="f-detalle" placeholder="Descripción del servicio o gasto">
+        </div>
+        <div class="form-group" id="g-cliente">
+          <label>Cliente</label>
+          <input type="text" id="f-cliente" placeholder="Ej: Monte Olimpo" list="clientes-list">
+          <datalist id="clientes-list"></datalist>
+        </div>
+        <div class="form-group">
+          <label>Hora</label>
+          <input type="text" id="f-hora" placeholder="Ej: 9AM-2PM">
+        </div>
+        <div class="form-group">
+          <label>Pago</label>
+          <select id="f-pago">
+            <option value="LISTO">LISTO</option>
+            <option value="OK">OK</option>
+            <option value="PENDIENTE">PENDIENTE</option>
+          </select>
+        </div>
+        <div class="form-group" id="g-boleta">
+          <label>Boleta / Factura</label>
+          <select id="f-boleta">
+            <option value="">No</option>
+            <option value="SI">Boleta</option>
+            <option value="FACTURA">Factura</option>
+          </select>
+        </div>
+        <div class="form-group full" id="g-categoria" style="display:none">
+          <label>Categoría Gasto</label>
+          <select id="f-categoria">
+            <option value="Combustible">Combustible</option>
+            <option value="Mantención">Mantención</option>
+            <option value="Peaje">Peaje</option>
+            <option value="Peoneta">Peoneta</option>
+            <option value="Seguro">Seguro</option>
+            <option value="Repuestos">Repuestos</option>
+            <option value="Otro">Otro</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" onclick="guardarRegistro()">💾 GUARDAR REGISTRO</button>
+    </div>
+  </div>
+
+  <!-- REGISTROS -->
+  <div class="section" id="sec-registros">
+    <div class="search-bar">
+      <span class="icon">🔍</span>
+      <input type="text" id="searchInput" placeholder="Buscar servicio, cliente..." oninput="renderRegistros()">
+    </div>
+    <div class="filter-row">
+      <select id="filtroTipo" onchange="renderRegistros()">
+        <option value="">Todos</option>
+        <option value="ingreso">Solo Ingresos</option>
+        <option value="gasto">Solo Gastos</option>
+      </select>
+      <select id="filtroMes" onchange="renderRegistros()">
+        <option value="">Todos los meses</option>
+      </select>
+    </div>
+    <div id="registros-list"></div>
+  </div>
+
+  <!-- RESUMEN -->
+  <div class="section" id="sec-resumen">
+    <div class="mes-selector" id="mes-chips"></div>
+    <div id="resumen-content"></div>
+  </div>
+
+  <!-- CLIENTES -->
+  <div class="section" id="sec-clientes">
+    <div id="clientes-content"></div>
+  </div>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ==================== DATOS HISTÓRICOS ====================
+const HISTORICO = [
+  // INGRESOS ABRIL 2025
+  {id:'h1',tipo:'ingreso',fecha:'2025-04-22',detalle:'TRANSPORTE FRIGO ESPACIO RIESCO',monto:40000,hora:'',pago:'LISTO',boleta:'',cliente:''},
+  {id:'h2',tipo:'ingreso',fecha:'2025-04-23',detalle:'PEONETA ROCKSTAR',monto:30000,hora:'',pago:'LISTO',boleta:'',cliente:''},
+  {id:'h3',tipo:'ingreso',fecha:'2025-04-24',detalle:'4 BARRAS COSTANERA',monto:40000,hora:'',pago:'LISTO',boleta:'',cliente:''},
+  {id:'h4',tipo:'ingreso',fecha:'2025-04-30',detalle:'AYUDA PABLO PARA CABROS MONTAJE BOSQUE LUZ',monto:30000,hora:'9AM-10AM',pago:'LISTO',boleta:'',cliente:''},
+  {id:'h5',tipo:'ingreso',fecha:'2025-04-30',detalle:'MUDANZA JAVI AMIGA CATA',monto:70000,hora:'11AM-2PM',pago:'LISTO',boleta:'',cliente:''},
+  {id:'h6',tipo:'ingreso',fecha:'2025-04-30',detalle:'APOYO PEONETA DIA',monto:60000,hora:'3PM-9PM',pago:'LISTO',boleta:'',cliente:''},
+  {id:'h7',tipo:'ingreso',fecha:'2025-04-30',detalle:'RETIRO AUSTRAL CON MI PAPA DE PEONETA (20 LE PAGUÉ)',monto:60000,hora:'9.40-12PM',pago:'LISTO',boleta:'',cliente:''},
+  // GASTOS ABRIL 2025
+  {id:'g1',tipo:'gasto',fecha:'2025-04-23',detalle:'INICIO EMPRESA',monto:40000,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Otro'},
+  {id:'g2',tipo:'gasto',fecha:'2025-04-30',detalle:'BENCINA',monto:34000,hora:'',pago:'',boleta:'BOLETA',cliente:'',categoria:'Combustible'},
+  {id:'g3',tipo:'gasto',fecha:'2025-04-24',detalle:'DISCOS DE FRENO CHANGAN',monto:60000,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Mantención'},
+  {id:'g4',tipo:'gasto',fecha:'2025-04-24',detalle:'PASTILLAS CHANGAN',monto:25000,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Repuestos'},
+  {id:'g5',tipo:'gasto',fecha:'2025-04-26',detalle:'4 SET LINGAS 1 PULGADA',monto:27760,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Otro'},
+  // GASTOS NOVIEMBRE 2025 (SII)
+  {id:'g87',tipo:'gasto',fecha:'2025-11-01',detalle:'TELEFÓNICA MÓVILES CHILE S.A.',monto:8242,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Otro'},
+  {id:'g88',tipo:'gasto',fecha:'2025-11-05',detalle:'ADMINISTRADORA DE VENTAS AL DETALLE LTDA',monto:41946,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Otro'},
+  {id:'g89',tipo:'gasto',fecha:'2025-11-06',detalle:'BANCO DE CREDITO E INVERSIONES',monto:5895,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Otro'},
+  {id:'g90',tipo:'gasto',fecha:'2025-11-11',detalle:'AUTOMOTORA SANTIAGO LTDA',monto:55300,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Mantención'},
+  {id:'g91',tipo:'gasto',fecha:'2025-11-14',detalle:'ADMINISTRADORA DE VENTAS AL DETALLE LTDA',monto:28941,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Combustible'},
+  {id:'g92',tipo:'gasto',fecha:'2025-11-18',detalle:'ADMINISTRADORA DE VENTAS AL DETALLE LTDA',monto:24674,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Combustible'},
+  {id:'g93',tipo:'gasto',fecha:'2025-11-18',detalle:'PEAJE COSTANERA NORTE',monto:16378,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Peaje'},
+  {id:'g94',tipo:'gasto',fecha:'2025-11-19',detalle:'ADMINISTRADORA DE VENTAS AL DETALLE LTDA',monto:24346,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Combustible'},
+  {id:'g95',tipo:'gasto',fecha:'2025-11-23',detalle:'COMERCIAL Y SERVICIOS MATTER LIMITADA',monto:34998,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Repuestos'},
+  {id:'g96',tipo:'gasto',fecha:'2025-11-25',detalle:'ADMINISTRADORA DE VENTAS AL DETALLE LTDA',monto:33004,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Combustible'},
+  {id:'g97',tipo:'gasto',fecha:'2025-11-28',detalle:'FITALIA REPUESTOS SPA',monto:369000,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Repuestos'},
+  {id:'g98',tipo:'gasto',fecha:'2025-11-29',detalle:'ELIZABETH ROMERO',monto:30400,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Otro'},
+  {id:'g99',tipo:'gasto',fecha:'2025-11-14',detalle:'EASY RETAIL S.A.',monto:15990,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Otro'},
+  {id:'g100',tipo:'gasto',fecha:'2025-11-11',detalle:'PEAJE AUTOPISTA NUEVA VESPUCIO SUR',monto:16977,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Peaje'},
+  {id:'g101',tipo:'gasto',fecha:'2025-11-08',detalle:'PEAJE VESPUCIO ORIENTE',monto:3851,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Peaje'},
+  {id:'g102',tipo:'gasto',fecha:'2025-11-01',detalle:'SERVICIOS EMPRESARIALES ALPHA CONSULTING SPA',monto:40990,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Otro'},
+  // GASTOS DICIEMBRE 2025 (SII)
+  {id:'g103',tipo:'gasto',fecha:'2025-12-02',detalle:'ADMINISTRADORA DE VENTAS AL DETALLE LTDA',monto:34999,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Combustible'},
+  {id:'g104',tipo:'gasto',fecha:'2025-12-01',detalle:'TELEFÓNICA MÓVILES CHILE S.A.',monto:8242,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Otro'},
+  {id:'g105',tipo:'gasto',fecha:'2025-12-06',detalle:'COMERCIAL PAIHUEN LIMITADA',monto:35001,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Repuestos'},
+  {id:'g106',tipo:'gasto',fecha:'2025-12-10',detalle:'ADMINISTRADORA DE VENTAS AL DETALLE LTDA',monto:30023,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Combustible'},
+  {id:'g107',tipo:'gasto',fecha:'2025-12-10',detalle:'CHILENA DE REVISIONES TECNICAS SPA',monto:20350,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Mantención'},
+  {id:'g108',tipo:'gasto',fecha:'2025-12-09',detalle:'BANCO DE CREDITO E INVERSIONES',monto:5896,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Otro'},
+  {id:'g109',tipo:'gasto',fecha:'2025-12-14',detalle:'SOCIEDAD COMERCIAL EL PARRON LTDA',monto:35042,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Otro'},
+  {id:'g110',tipo:'gasto',fecha:'2025-12-17',detalle:'PEAJE COSTANERA NORTE',monto:15528,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Peaje'},
+  {id:'g111',tipo:'gasto',fecha:'2025-12-20',detalle:'AUTOMOTORA SANTIAGO LTDA',monto:45500,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Mantención'},
+  {id:'g112',tipo:'gasto',fecha:'2025-12-20',detalle:'JAIME MORERE RUIZ TAGLE Y CIA LIMITADA',monto:35024,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Otro'},
+  {id:'g113',tipo:'gasto',fecha:'2025-12-28',detalle:'COMERCIAL Y SERVICIOS MATTER LIMITADA',monto:43048,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Repuestos'},
+  {id:'g114',tipo:'gasto',fecha:'2025-12-30',detalle:'COMERCIAL Y SERVICIOS SAN IGNACIO LTDA',monto:23735,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Otro'},
+  {id:'g115',tipo:'gasto',fecha:'2025-12-09',detalle:'PEAJE AUTOPISTA CENTRAL',monto:833,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Peaje'},
+  {id:'g116',tipo:'gasto',fecha:'2025-12-09',detalle:'PEAJE VESPUCIO NORTE EXPRESS',monto:16066,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Peaje'},
+  {id:'g117',tipo:'gasto',fecha:'2025-12-10',detalle:'PEAJE AUTOPISTA NUEVA VESPUCIO SUR',monto:22336,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Peaje'},
+  {id:'g118',tipo:'gasto',fecha:'2025-12-13',detalle:'PEAJE VESPUCIO ORIENTE',monto:18463,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Peaje'},
+  // GASTOS ENERO 2026 (SII)
+  {id:'g119',tipo:'gasto',fecha:'2025-12-30',detalle:'ASIA REPUESTOS SPA',monto:60000,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Repuestos'},
+  {id:'g120',tipo:'gasto',fecha:'2026-01-01',detalle:'COMERCIAL Y SERVICIOS MATTER LIMITADA',monto:35008,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Combustible'},
+  {id:'g121',tipo:'gasto',fecha:'2026-01-01',detalle:'COMERCIAL MYC FUEL LIMITADA',monto:35700,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Combustible'},
+  {id:'g122',tipo:'gasto',fecha:'2026-01-01',detalle:'TELEFÓNICA MÓVILES CHILE S.A.',monto:10447,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Otro'},
+  {id:'g123',tipo:'gasto',fecha:'2026-01-03',detalle:'RC REPUESTOS CENTER SA',monto:34000,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Repuestos'},
+  {id:'g124',tipo:'gasto',fecha:'2026-01-03',detalle:'AUTOMOTORA SANTIAGO LTDA',monto:21000,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Mantención'},
+  {id:'g125',tipo:'gasto',fecha:'2026-01-03',detalle:'SOC. COMERC. DE REPUESTOS S.P.A.',monto:21000,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Repuestos'},
+  {id:'g126',tipo:'gasto',fecha:'2026-01-05',detalle:'ENCHUFER SPA',monto:17000,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Otro'},
+  {id:'g127',tipo:'gasto',fecha:'2026-01-09',detalle:'ESMAX RED LIMITADA',monto:35001,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Combustible'},
+  {id:'g128',tipo:'gasto',fecha:'2026-01-10',detalle:'AUTOMOTORA SANTIAGO LTDA',monto:4800,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Mantención'},
+  {id:'g129',tipo:'gasto',fecha:'2026-01-09',detalle:'BANCO DE CREDITO E INVERSIONES',monto:5914,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Otro'},
+  {id:'g130',tipo:'gasto',fecha:'2026-01-14',detalle:'ASIA REPUESTOS SPA',monto:15000,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Repuestos'},
+  {id:'g131',tipo:'gasto',fecha:'2026-01-19',detalle:'COMERCIAL LUSHANDY LIMITADA',monto:18900,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Otro'},
+  {id:'g132',tipo:'gasto',fecha:'2026-01-18',detalle:'LDA ASESORIAS E INVERSIONES SPA',monto:35000,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Otro'},
+  {id:'g133',tipo:'gasto',fecha:'2026-01-20',detalle:'PEAJE COSTANERA NORTE',monto:6303,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Peaje'},
+  {id:'g134',tipo:'gasto',fecha:'2026-01-12',detalle:'IMPLEMENTOS S.A.',monto:57050,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Otro'},
+  {id:'g135',tipo:'gasto',fecha:'2026-01-07',detalle:'PEAJE AUTOPISTA CENTRAL',monto:35676,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Peaje'},
+  {id:'g136',tipo:'gasto',fecha:'2026-01-07',detalle:'PEAJE VESPUCIO NORTE EXPRESS',monto:13131,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Peaje'},
+  {id:'g137',tipo:'gasto',fecha:'2026-01-13',detalle:'PEAJE AUTOPISTA NUEVA VESPUCIO SUR',monto:18341,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Peaje'},
+  {id:'g138',tipo:'gasto',fecha:'2026-01-13',detalle:'PEAJE VESPUCIO ORIENTE',monto:16193,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Peaje'},
+  // GASTOS FEBRERO 2026 (SII)
+  {id:'g139',tipo:'gasto',fecha:'2026-02-01',detalle:'TELEFÓNICA MÓVILES CHILE S.A.',monto:8374,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Otro'},
+  {id:'g140',tipo:'gasto',fecha:'2026-02-02',detalle:'ASIA REPUESTOS SPA',monto:25000,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Repuestos'},
+  {id:'g141',tipo:'gasto',fecha:'2026-02-02',detalle:'SOCIEDAD COMERCIAL PINTO Y CANDIA LTDA',monto:34095,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Combustible'},
+  {id:'g142',tipo:'gasto',fecha:'2026-02-05',detalle:'ASIA REPUESTOS SPA',monto:35000,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Repuestos'},
+  {id:'g143',tipo:'gasto',fecha:'2026-02-06',detalle:'BANCO DE CREDITO E INVERSIONES',monto:5904,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Otro'},
+  {id:'g144',tipo:'gasto',fecha:'2026-02-18',detalle:'COMERCIAL Y SERVICIOS MATTER LIMITADA',monto:33941,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Combustible'},
+  {id:'g145',tipo:'gasto',fecha:'2026-02-25',detalle:'INVERSIONES ENEX S.A.',monto:20000,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Combustible'},
+  {id:'g146',tipo:'gasto',fecha:'2026-02-10',detalle:'AUTOTEK LIMITADA',monto:30801,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Mantención'},
+  {id:'g147',tipo:'gasto',fecha:'2026-02-02',detalle:'AUTOTEK LIMITADA',monto:19000,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Mantención'},
+  {id:'g148',tipo:'gasto',fecha:'2026-02-08',detalle:'PEAJE RUTA DEL MAIPO',monto:1400,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Peaje'},
+  {id:'g149',tipo:'gasto',fecha:'2026-02-10',detalle:'PEAJE AUTOPISTA CENTRAL',monto:14634,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Peaje'},
+  {id:'g150',tipo:'gasto',fecha:'2026-02-12',detalle:'PEAJE AUTOPISTA NUEVA VESPUCIO SUR',monto:10846,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Peaje'},
+  {id:'g151',tipo:'gasto',fecha:'2026-02-11',detalle:'PEAJE VESPUCIO NORTE EXPRESS',monto:10573,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Peaje'},
+  {id:'g152',tipo:'gasto',fecha:'2026-02-14',detalle:'PEAJE VESPUCIO ORIENTE',monto:12279,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Peaje'},
+  // GASTOS MARZO 2026 (SII)
+  {id:'g153',tipo:'gasto',fecha:'2026-03-01',detalle:'TELEFÓNICA MÓVILES CHILE S.A.',monto:10490,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Otro'},
+  {id:'g154',tipo:'gasto',fecha:'2026-03-02',detalle:'ESMAX RED LIMITADA',monto:10000,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Combustible'},
+  {id:'g155',tipo:'gasto',fecha:'2026-03-05',detalle:'SODIMAC S.A.',monto:139990,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Otro'},
+  {id:'g156',tipo:'gasto',fecha:'2026-03-06',detalle:'BANCO DE CREDITO E INVERSIONES',monto:5924,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Otro'},
+  {id:'g157',tipo:'gasto',fecha:'2026-03-12',detalle:'ESMAX RED LIMITADA',monto:30002,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Combustible'},
+  {id:'g158',tipo:'gasto',fecha:'2026-03-15',detalle:'COMERCIAL Y SERVICIOS MATTER LIMITADA',monto:21574,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Combustible'},
+  {id:'g159',tipo:'gasto',fecha:'2026-03-04',detalle:'OPERADORA DE SISTEMAS ELECTRÓNICOS SPA (PEAJE)',monto:10800,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Peaje'},
+  // INGRESOS MAYO 2025
+  {id:'h8',tipo:'ingreso',fecha:'2025-05-01',detalle:'2 DESMONTAJE PARA CABROS BOSQUE LUZ Y MALLSPORT',monto:80000,hora:'5AM-10AM',pago:'LISTO',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h9',tipo:'ingreso',fecha:'2025-05-01',detalle:'RETIRO CENTRO 5 BARRAS',monto:30000,hora:'10AM-3PM',pago:'LISTO',boleta:'',cliente:'PABLO'},
+  {id:'h10',tipo:'ingreso',fecha:'2025-05-03',detalle:'MONTAJE Y DESMONTAJE CLUB HIPICO 6 LOUNGES',monto:80000,hora:'11AM-2PM',pago:'LISTO',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h11',tipo:'ingreso',fecha:'2025-05-08',detalle:'MOVER COSAS SE ESTABAN LLOVIENDO',monto:30000,hora:'1PM-3PM',pago:'LISTO',boleta:'',cliente:'CCU'},
+  {id:'h12',tipo:'ingreso',fecha:'2025-05-13',detalle:'2 CAMILLAS PLEGABLES PROVIDENCIA A LA REINA',monto:25000,hora:'6PM-8PM',pago:'LISTO',boleta:'SI',cliente:'FACEBOOK'},
+  {id:'h13',tipo:'ingreso',fecha:'2025-05-14',detalle:'2 VUELTAS SILLON, DESPUES SILLON Y REPISA. LAS CONDES A MACUL',monto:40000,hora:'8AM-10AM',pago:'LISTO',boleta:'SI',cliente:'FACEBOOK'},
+  {id:'h14',tipo:'ingreso',fecha:'2025-05-15',detalle:'SILLAS, MESAS E INSUMOS ALEMANA SPORT',monto:40000,hora:'3PM-6PM',pago:'LISTO',boleta:'',cliente:'ALEMANA'},
+  {id:'h15',tipo:'ingreso',fecha:'2025-05-16',detalle:'CCU CERVEZAS 11 CAJAS DE GUANACO A LAS CONDES',monto:30000,hora:'12PM-3PM',pago:'LISTO',boleta:'',cliente:'CCU'},
+  {id:'h16',tipo:'ingreso',fecha:'2025-05-17',detalle:'TRANSPORTE Y MONTAJE 2 EVENTOS CCU CONCHA Y TORO Y CIRCULO ESPAÑOL',monto:70000,hora:'8.30AM-3PM',pago:'LISTO',boleta:'',cliente:'CCU'},
+  {id:'h17',tipo:'ingreso',fecha:'2025-05-17',detalle:'COSAS PARA PABLO DESDE ESTACION MAPOCHO HASTA SU CASA',monto:30000,hora:'8PM-10PM',pago:'LISTO',boleta:'',cliente:'ALEMANA'},
+  {id:'h18',tipo:'ingreso',fecha:'2025-05-18',detalle:'TRANSPORTE Y DESMONTAJE CCU CONCHA Y TORO',monto:70000,hora:'4.30AM-11AM',pago:'LISTO',boleta:'',cliente:'CCU'},
+  {id:'h19',tipo:'ingreso',fecha:'2025-05-19',detalle:'15 TUBOS PVC TIO PANCHO Y MATERIALES CONSTRUCCION (2 DESTINOS)',monto:50000,hora:'8AM-10AM',pago:'LISTO',boleta:'SI',cliente:'TIO PANCHO'},
+  {id:'h20',tipo:'ingreso',fecha:'2025-05-20',detalle:'COSAS PARA PABLO DESDE SU CASA A BODEGA ESTORIL',monto:30000,hora:'8.40AM-10AM',pago:'LISTO',boleta:'',cliente:'ALEMANA'},
+  {id:'h21',tipo:'ingreso',fecha:'2025-05-20',detalle:'FLETE PARA ALEMANA 15 SILLAS KINESICAS DESDE CLINICA A CASA EDU',monto:20000,hora:'12PM-1PM',pago:'LISTO',boleta:'',cliente:'ALEMANA'},
+  {id:'h22',tipo:'ingreso',fecha:'2025-05-20',detalle:'2 EVENTOS TRANSPORTE Y MONTAJE ONE Y W',monto:72500,hora:'1PM-7PM',pago:'LISTO',boleta:'SI',cliente:'MONTE OLIMPO'},
+  {id:'h23',tipo:'ingreso',fecha:'2025-05-21',detalle:'DESMONTAJES 2 EVENTOS ONE Y W',monto:72500,hora:'5AM-10AM',pago:'LISTO',boleta:'SI',cliente:'MONTE OLIMPO'},
+  {id:'h24',tipo:'ingreso',fecha:'2025-05-22',detalle:'MATERIALES Y COSAS PARA TIO PANCHO',monto:30000,hora:'8AM-10AM',pago:'LISTO',boleta:'SI',cliente:'TIO PANCHO'},
+  {id:'h25',tipo:'ingreso',fecha:'2025-05-22',detalle:'DESMONTAJE ALEMANA SPORT A ESTORIL 50 CON PABLO',monto:30000,hora:'10AM-12PM',pago:'LISTO',boleta:'',cliente:'ALEMANA'},
+  {id:'h26',tipo:'ingreso',fecha:'2025-05-28',detalle:'FLETE TIO PANCHO VARIOS PUNTOS, MACUL, NATANIEL COX, MATTA, HOMECENTER Y CASA CHINOS',monto:55000,hora:'8.45AM-12PM',pago:'LISTO',boleta:'SI',cliente:'TIO PANCHO'},
+  {id:'h27',tipo:'ingreso',fecha:'2025-05-31',detalle:'MONTAJE HUECHURABA CON PABLO',monto:40000,hora:'1PM-4PM',pago:'LISTO',boleta:'SI',cliente:'MONTE OLIMPO'},
+  // GASTOS MAYO 2025
+  {id:'g6',tipo:'gasto',fecha:'2025-05-03',detalle:'ACEITES Y FILTRO SPARK',monto:37600,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Mantención'},
+  {id:'g7',tipo:'gasto',fecha:'2025-05-06',detalle:'TRANSFERENCIA CAMION',monto:120000,hora:'',pago:'',boleta:'BOLETA',cliente:'',categoria:'Otro'},
+  {id:'g8',tipo:'gasto',fecha:'2025-05-07',detalle:'ASESORIA ACREDITACION ACTIVIDAD',monto:40000,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Otro'},
+  {id:'g9',tipo:'gasto',fecha:'2025-05-10',detalle:'BENCINA',monto:30000,hora:'',pago:'',boleta:'BOLETA',cliente:'',categoria:'Combustible'},
+  {id:'g10',tipo:'gasto',fecha:'2025-05-14',detalle:'ALTERNADOR',monto:138000,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Repuestos'},
+  {id:'g11',tipo:'gasto',fecha:'2025-05-17',detalle:'BENCINA',monto:30000,hora:'',pago:'',boleta:'BOLETA',cliente:'',categoria:'Combustible'},
+  {id:'g12',tipo:'gasto',fecha:'2025-05-22',detalle:'ACEITES Y FILTROS CAMION FRONTIER PABLO',monto:67000,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Mantención'},
+  {id:'g13',tipo:'gasto',fecha:'2025-05-25',detalle:'BENCINA',monto:30000,hora:'',pago:'',boleta:'BOLETA',cliente:'',categoria:'Combustible'},
+  {id:'g14',tipo:'gasto',fecha:'2025-05-27',detalle:'CERTIFICADO DIGITAL',monto:9500,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Otro'},
+  {id:'g15',tipo:'gasto',fecha:'2025-05-29',detalle:'BENCINA',monto:10938,hora:'',pago:'',boleta:'BOLETA',cliente:'',categoria:'Combustible'},
+  // INGRESOS JUNIO 2025
+  {id:'h28',tipo:'ingreso',fecha:'2025-06-01',detalle:'DESMONTAJE HUECHURABA CON PABLO',monto:40000,hora:'5.40AM-8AM',pago:'LISTO',boleta:'SI',cliente:'MONTE OLIMPO'},
+  {id:'h29',tipo:'ingreso',fecha:'2025-06-02',detalle:'MUDANZA CON PABLO EN DOS CAMIONES + AYUDO SEBA (CASA A CASA, 700MTS)',monto:45000,hora:'11AM-1PM',pago:'LISTO',boleta:'SI',cliente:'FACEBOOK/MAMA'},
+  {id:'h30',tipo:'ingreso',fecha:'2025-06-03',detalle:'FLETE MOTO DE LO BARNECHEA A LIRA',monto:40000,hora:'2PM-3PM',pago:'LISTO',boleta:'SI',cliente:'FACEBOOK/MAMA'},
+  {id:'h31',tipo:'ingreso',fecha:'2025-06-05',detalle:'PEONETA MONTAJE KUNSTMANN',monto:30000,hora:'9AM-4PM',pago:'LISTO',boleta:'SI',cliente:'MONTE OLIMPO'},
+  {id:'h32',tipo:'ingreso',fecha:'2025-06-06',detalle:'PEONETA DESMONTAJE KUNSTMANN',monto:30000,hora:'9AM-12AM',pago:'LISTO',boleta:'SI',cliente:'MONTE OLIMPO'},
+  {id:'h33',tipo:'ingreso',fecha:'2025-06-06',detalle:'TRANSPORTE MONTAJE SALVAJE ESPACIO RIESCO',monto:75000,hora:'12AM-8PM',pago:'LISTO',boleta:'SI',cliente:'MONTE OLIMPO'},
+  {id:'h34',tipo:'ingreso',fecha:'2025-06-07',detalle:'TRANSPORTE MONTAJE BOSQUE LUZ',monto:40000,hora:'9AM-12PM',pago:'LISTO',boleta:'SI',cliente:'MONTE OLIMPO'},
+  {id:'h35',tipo:'ingreso',fecha:'2025-06-08',detalle:'TRANSPORTE DESMONTAJE SALVAJE ESPACIO RIESCO',monto:75000,hora:'5AM-9AM',pago:'LISTO',boleta:'SI',cliente:'MONTE OLIMPO'},
+  {id:'h36',tipo:'ingreso',fecha:'2025-06-08',detalle:'TRANSPORTE DESMONTAJE BOSQUE LUZ',monto:40000,hora:'9AM-12PM',pago:'LISTO',boleta:'SI',cliente:'MONTE OLIMPO'},
+  {id:'h37',tipo:'ingreso',fecha:'2025-06-11',detalle:'FLETE TROMPO A TRAFALGAR 6906 DE SANTA JULIA',monto:30000,hora:'7.30-9AM',pago:'LISTO',boleta:'SI',cliente:'TIO PANCHO'},
+  {id:'h38',tipo:'ingreso',fecha:'2025-06-11',detalle:'FLETE MOTO DESDE CENTRO A 10 DE JULIO',monto:25000,hora:'1PM-2.30PM',pago:'LISTO',boleta:'SI',cliente:'FACEBOOK/MAMA'},
+  {id:'h39',tipo:'ingreso',fecha:'2025-06-13',detalle:'8 SILLONES 8 MESAS CASA EDU A CENTROPARQUE',monto:40000,hora:'10AM-12PM',pago:'LISTO',boleta:'SI',cliente:'MONTE OLIMPO'},
+  {id:'h40',tipo:'ingreso',fecha:'2025-06-13',detalle:'CAMA DE IKEA KENNEDY A LA DEHESA',monto:50000,hora:'12PM-1PM',pago:'LISTO',boleta:'SI',cliente:'FACEBOOK/MAMA'},
+  {id:'h41',tipo:'ingreso',fecha:'2025-06-18',detalle:'MONTAJE ONE METROPOLITAN',monto:40000,hora:'4PM-8PM',pago:'LISTO',boleta:'SI',cliente:'MONTE OLIMPO'},
+  {id:'h42',tipo:'ingreso',fecha:'2025-06-19',detalle:'APOYO EXTRAS 4 SILLONES Y 4 MESAS ONE',monto:10000,hora:'9AM-11AM',pago:'LISTO',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h43',tipo:'ingreso',fecha:'2025-06-19',detalle:'PEONETA MONTAJE BOSQUE LUZ',monto:30000,hora:'11AM-1PM',pago:'LISTO',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h44',tipo:'ingreso',fecha:'2025-06-19',detalle:'TRANSPORTE Y MONTAJE W',monto:40000,hora:'3PM-6PM',pago:'LISTO',boleta:'SI',cliente:'MONTE OLIMPO'},
+  {id:'h45',tipo:'ingreso',fecha:'2025-06-19',detalle:'EXTRAS 7 SILLONES YO SOLO',monto:30000,hora:'7PM-8PM',pago:'LISTO',boleta:'SI',cliente:'MONTE OLIMPO'},
+  {id:'h46',tipo:'ingreso',fecha:'2025-06-20',detalle:'TRANSPORTE Y DESMONTAJE W',monto:40000,hora:'4AM-7AM',pago:'LISTO',boleta:'SI',cliente:'MONTE OLIMPO'},
+  {id:'h47',tipo:'ingreso',fecha:'2025-06-20',detalle:'TRANSPORTE Y DESMONTAJE ONE',monto:40000,hora:'7AM-10AM',pago:'LISTO',boleta:'SI',cliente:'MONTE OLIMPO'},
+  {id:'h48',tipo:'ingreso',fecha:'2025-06-20',detalle:'TRANSPORTE MONTAJE BUNKER',monto:40000,hora:'3PM-7PM',pago:'LISTO',boleta:'SI',cliente:'MONTE OLIMPO'},
+  {id:'h49',tipo:'ingreso',fecha:'2025-06-21',detalle:'TRANSPORTE DESMONTAJE BUNKER',monto:40000,hora:'4AM-7AM',pago:'LISTO',boleta:'SI',cliente:'MONTE OLIMPO'},
+  {id:'h50',tipo:'ingreso',fecha:'2025-06-24',detalle:'PEONETA MONTAJE BOMBEROS',monto:20000,hora:'9.30AM-11AM',pago:'LISTO',boleta:'SI',cliente:'MONTE OLIMPO'},
+  {id:'h51',tipo:'ingreso',fecha:'2025-06-24',detalle:'FLETE TIO MANUEL PIEDRAS',monto:20000,hora:'2.30-4PM',pago:'LISTO',boleta:'',cliente:'TIO MANUEL'},
+  {id:'h52',tipo:'ingreso',fecha:'2025-06-25',detalle:'PEONETA DESMONTAJE BOMBEROS',monto:20000,hora:'9AM-11PM',pago:'LISTO',boleta:'SI',cliente:'MONTE OLIMPO'},
+  {id:'h53',tipo:'ingreso',fecha:'2025-06-25',detalle:'TRANSPORTE MONTAJE ESTADIO CROATA',monto:40000,hora:'11AM-4PM',pago:'LISTO',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h54',tipo:'ingreso',fecha:'2025-06-26',detalle:'TRANSPORTE DESMONTAJE ESTADIO CROATA',monto:40000,hora:'9AM-12PM',pago:'LISTO',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h55',tipo:'ingreso',fecha:'2025-06-26',detalle:'TRANSPORTE MONTAJE CENTROPARQUE',monto:35000,hora:'',pago:'LISTO',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h56',tipo:'ingreso',fecha:'2025-06-26',detalle:'EXTRA 8 SILLONES CAMBIO CENTRO PARQUE',monto:50000,hora:'',pago:'LISTO',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h57',tipo:'ingreso',fecha:'2025-06-26',detalle:'TRANSPORTE DESMONTAJE CENTROPARQUE',monto:35000,hora:'',pago:'LISTO',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h58',tipo:'ingreso',fecha:'2025-06-30',detalle:'PEONETA MONTAJE Y DESMONTAJE EVENTO CHICO MISMO DIA',monto:40000,hora:'',pago:'LISTO',boleta:'',cliente:'MONTE OLIMPO'},
+  // GASTOS JUNIO 2025
+  {id:'g16',tipo:'gasto',fecha:'2025-06-03',detalle:'BENCINA CON FACTURA',monto:1781,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Combustible'},
+  {id:'g17',tipo:'gasto',fecha:'2025-06-04',detalle:'YEGUA DE CARGA',monto:129990,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Otro'},
+  {id:'g18',tipo:'gasto',fecha:'2025-06-04',detalle:'RAMPLA PARA MOTOS',monto:69899,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Otro'},
+  {id:'g19',tipo:'gasto',fecha:'2025-06-06',detalle:'BENCINA',monto:29181,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Combustible'},
+  {id:'g20',tipo:'gasto',fecha:'2025-06-09',detalle:'REPUESTOS CAMIONETA KORANDO',monto:50600,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Repuestos'},
+  {id:'g21',tipo:'gasto',fecha:'2025-06-10',detalle:'LLAVE SACA FILTRO',monto:7500,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Repuestos'},
+  {id:'g22',tipo:'gasto',fecha:'2025-06-11',detalle:'BENCINA',monto:35667,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Combustible'},
+  {id:'g23',tipo:'gasto',fecha:'2025-06-13',detalle:'BENCINA',monto:18362,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Combustible'},
+  {id:'g24',tipo:'gasto',fecha:'2025-06-14',detalle:'MANTENIMIENTO COMPLETO',monto:90000,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Mantención'},
+  {id:'g25',tipo:'gasto',fecha:'2025-06-14',detalle:'ACEITE CHANGAN',monto:21000,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Mantención'},
+  {id:'g26',tipo:'gasto',fecha:'2025-06-14',detalle:'COOLANT CHANGAN Y TIA CECI',monto:26870,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Mantención'},
+  {id:'g27',tipo:'gasto',fecha:'2025-06-14',detalle:'FILTRO PETROLEO KORANDO',monto:14580,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Mantención'},
+  {id:'g28',tipo:'gasto',fecha:'2025-06-17',detalle:'CILINDRO DE FRENO',monto:18000,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Repuestos'},
+  {id:'g29',tipo:'gasto',fecha:'2025-06-17',detalle:'RECTIFICADO DE TAMBORES Y LIQUIDO DE FRENOS',monto:25900,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Mantención'},
+  {id:'g30',tipo:'gasto',fecha:'2025-06-19',detalle:'BENCINA',monto:26694,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Combustible'},
+  {id:'g31',tipo:'gasto',fecha:'2025-06-21',detalle:'RODAMIENTO DE MASA MAZDA Y BUJES BARRA',monto:65000,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Repuestos'},
+  {id:'g32',tipo:'gasto',fecha:'2025-06-24',detalle:'BENCINA',monto:38314,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Combustible'},
+  {id:'g33',tipo:'gasto',fecha:'2025-06-27',detalle:'COMPRA PABLO MANTENIMIENTO HAVAL 3',monto:45100,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Mantención'},
+  // INGRESOS JULIO 2025
+  {id:'h59',tipo:'ingreso',fecha:'2025-07-12',detalle:'MONTAJE ONE',monto:40000,hora:'',pago:'OK',boleta:'SI',cliente:'MONTE OLIMPO'},
+  {id:'h60',tipo:'ingreso',fecha:'2025-07-13',detalle:'DESMONTAJE ONE',monto:40000,hora:'',pago:'OK',boleta:'SI',cliente:'MONTE OLIMPO'},
+  {id:'h61',tipo:'ingreso',fecha:'2025-07-14',detalle:'MONTAJE RIESCO',monto:90000,hora:'',pago:'OK',boleta:'SI',cliente:'MONTE OLIMPO'},
+  {id:'h62',tipo:'ingreso',fecha:'2025-07-15',detalle:'MONTAJE CENTRO PARQUE',monto:40000,hora:'',pago:'OK',boleta:'SI',cliente:'MONTE OLIMPO'},
+  {id:'h63',tipo:'ingreso',fecha:'2025-07-15',detalle:'PEONETA MONTAJE BOSQUE LUZ',monto:30000,hora:'',pago:'OK',boleta:'SI',cliente:'MONTE OLIMPO'},
+  {id:'h64',tipo:'ingreso',fecha:'2025-07-16',detalle:'DESMONTAJE CENTRO PARQUE',monto:40000,hora:'',pago:'OK',boleta:'SI',cliente:'MONTE OLIMPO'},
+  {id:'h65',tipo:'ingreso',fecha:'2025-07-16',detalle:'DESMONTAJE ESPACIO RIESCO',monto:85000,hora:'',pago:'OK',boleta:'SI',cliente:'MONTE OLIMPO'},
+  {id:'h66',tipo:'ingreso',fecha:'2025-07-16',detalle:'DESMONTAJE PEONETA BOSQUE LUZ',monto:30000,hora:'',pago:'OK',boleta:'SI',cliente:'MONTE OLIMPO'},
+  {id:'h67',tipo:'ingreso',fecha:'2025-07-19',detalle:'BARRA CLUB MILITAR MONTAJE',monto:45000,hora:'',pago:'OK',boleta:'SI',cliente:'MONTE OLIMPO'},
+  {id:'h68',tipo:'ingreso',fecha:'2025-07-20',detalle:'BARRA CLUB MILITAR DESMONTAJE',monto:45000,hora:'',pago:'OK',boleta:'SI',cliente:'MONTE OLIMPO'},
+  // GASTOS JULIO 2025
+  {id:'g34',tipo:'gasto',fecha:'2025-07-01',detalle:'BENCINA',monto:39015,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Combustible'},
+  {id:'g35',tipo:'gasto',fecha:'2025-07-01',detalle:'PLAN MOVISTAR PARA TAG',monto:8242,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Otro'},
+  {id:'g36',tipo:'gasto',fecha:'2025-07-11',detalle:'CAJA HERR, LINGAS, CABLE USB, PAÑOS',monto:66520,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Otro'},
+  {id:'g37',tipo:'gasto',fecha:'2025-07-15',detalle:'BENCINA',monto:46001,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Combustible'},
+  {id:'g38',tipo:'gasto',fecha:'2025-07-17',detalle:'CABLES PARA PUENTE',monto:19000,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Repuestos'},
+  {id:'g39',tipo:'gasto',fecha:'2025-07-17',detalle:'ARRIENDO OFICINA VIRTUAL',monto:35000,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Otro'},
+  {id:'g40',tipo:'gasto',fecha:'2025-07-22',detalle:'BENCINA',monto:39176,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Combustible'},
+  {id:'g41',tipo:'gasto',fecha:'2025-07-24',detalle:'ELECTRO Y PASTILLAS PUNTO',monto:75320,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Mantención'},
+  {id:'g42',tipo:'gasto',fecha:'2025-07-24',detalle:'CREMALLERA PUNTO',monto:95340,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Repuestos'},
+  {id:'g43',tipo:'gasto',fecha:'2025-07-29',detalle:'BENCINA',monto:28303,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Combustible'},
+  // INGRESOS AGOSTO 2025
+  {id:'h69',tipo:'ingreso',fecha:'2025-08-01',detalle:'DESMONTAJE PEONETA BOLD',monto:30000,hora:'',pago:'LISTO',boleta:'',cliente:'YOURFIRST'},
+  {id:'h70',tipo:'ingreso',fecha:'2025-08-01',detalle:'FLETE COSAS BOLD CON EDU IDA Y VUELTA',monto:40000,hora:'',pago:'LISTO',boleta:'SI',cliente:'YOURFIRST'},
+  {id:'h71',tipo:'ingreso',fecha:'2025-08-01',detalle:'PEONETA OFICINA CCU Y PEONETA MUEBLE ZTE',monto:50000,hora:'',pago:'LISTO',boleta:'SI',cliente:'PABLO'},
+  {id:'h72',tipo:'ingreso',fecha:'2025-08-01',detalle:'MONTAJE Y DESMONTAJE BUNKER',monto:80000,hora:'',pago:'LISTO',boleta:'SI',cliente:'MONTE OLIMPO'},
+  {id:'h73',tipo:'ingreso',fecha:'2025-08-01',detalle:'MONTAJE Y DESMONTAJE TITANIUM',monto:135000,hora:'',pago:'LISTO',boleta:'SI',cliente:'MONTE OLIMPO'},
+  {id:'h74',tipo:'ingreso',fecha:'2025-08-01',detalle:'FLETE EXPRESS SOLO PARA BAJAR PABLO NO CABE',monto:40000,hora:'',pago:'LISTO',boleta:'',cliente:'PABLO'},
+  {id:'h75',tipo:'ingreso',fecha:'2025-08-01',detalle:'FLETE EXPRESS A QUILICURA MUEBLE ZTE',monto:40000,hora:'',pago:'LISTO',boleta:'SI',cliente:'PABLO'},
+  {id:'h76',tipo:'ingreso',fecha:'2025-08-01',detalle:'MONTAJE Y DESMONTAJE BOSQUE LUZ',monto:80000,hora:'',pago:'LISTO',boleta:'SI',cliente:'MONTE OLIMPO'},
+  {id:'h77',tipo:'ingreso',fecha:'2025-08-01',detalle:'MONTAJE Y DESMONTAJE PALESTINO',monto:90000,hora:'',pago:'LISTO',boleta:'SI',cliente:'MONTE OLIMPO'},
+  {id:'h78',tipo:'ingreso',fecha:'2025-08-01',detalle:'APOYO MUDANZA CON PABLO',monto:60000,hora:'',pago:'LISTO',boleta:'SI',cliente:'PABLO'},
+  {id:'h79',tipo:'ingreso',fecha:'2025-08-01',detalle:'30 CAJAS FLETE CORTO (FLETE DE PABLO DE CRISTIAN PRODUCTOR PELAO)',monto:40000,hora:'',pago:'LISTO',boleta:'SI',cliente:'PABLO'},
+  {id:'h80',tipo:'ingreso',fecha:'2025-08-18',detalle:'PEONETA DIA LUNES 4 HORAS BARRA Y MAQUINAS DE CONGELADORAS LASTARIA',monto:45000,hora:'',pago:'LISTO',boleta:'',cliente:'PABLO'},
+  {id:'h81',tipo:'ingreso',fecha:'2025-08-22',detalle:'PEONETA DESMONTAJE LASTARIA MAQUINAS Y CCU ESPACIO RIESCO',monto:45000,hora:'',pago:'LISTO',boleta:'',cliente:'PABLO'},
+  {id:'h82',tipo:'ingreso',fecha:'2025-08-23',detalle:'MONTAJE Y DESMONTAJE HILARIA',monto:180000,hora:'',pago:'LISTO',boleta:'SEPTIEMBRE',cliente:'MONTE OLIMPO'},
+  {id:'h83',tipo:'ingreso',fecha:'2025-08-23',detalle:'EXTRA 3 SILLONES EXTRAS',monto:40000,hora:'',pago:'LISTO',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h84',tipo:'ingreso',fecha:'2025-08-27',detalle:'LAMPA 6 LOUNGES PALLETS',monto:80000,hora:'',pago:'LISTO',boleta:'SEPTIEMBRE',cliente:'MONTE OLIMPO'},
+  {id:'h85',tipo:'ingreso',fecha:'2025-08-27',detalle:'ONE',monto:80000,hora:'',pago:'LISTO',boleta:'SEPTIEMBRE',cliente:'MONTE OLIMPO'},
+  {id:'h86',tipo:'ingreso',fecha:'2025-08-27',detalle:'SALVAJE',monto:100000,hora:'',pago:'LISTO',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h87',tipo:'ingreso',fecha:'2025-08-27',detalle:'CENTROPARQUE',monto:90000,hora:'',pago:'LISTO',boleta:'SEPTIEMBRE',cliente:'MONTE OLIMPO'},
+  // GASTOS AGOSTO 2025
+  {id:'g44',tipo:'gasto',fecha:'2025-08-02',detalle:'BENCINA',monto:22549,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Combustible'},
+  {id:'g45',tipo:'gasto',fecha:'2025-08-05',detalle:'BENCINA',monto:24755,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Combustible'},
+  {id:'g46',tipo:'gasto',fecha:'2025-08-05',detalle:'CLARO PLAN',monto:8242,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Otro'},
+  {id:'g47',tipo:'gasto',fecha:'2025-08-10',detalle:'ARAMCO BENCINA',monto:15000,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Combustible'},
+  {id:'g48',tipo:'gasto',fecha:'2025-08-10',detalle:'ESMERIL ELECTRICO',monto:59980,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Otro'},
+  {id:'g49',tipo:'gasto',fecha:'2025-08-10',detalle:'BENCINA',monto:31862,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Combustible'},
+  {id:'g50',tipo:'gasto',fecha:'2025-08-19',detalle:'BENCINA',monto:40000,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Combustible'},
+  {id:'g51',tipo:'gasto',fecha:'2025-08-21',detalle:'ENCHUFE PUNTO',monto:15000,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Repuestos'},
+  {id:'g52',tipo:'gasto',fecha:'2025-08-23',detalle:'BENCINA',monto:31588,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Combustible'},
+  {id:'g53',tipo:'gasto',fecha:'2025-08-23',detalle:'BENCINA',monto:32485,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Combustible'},
+  {id:'g54',tipo:'gasto',fecha:'2025-08-31',detalle:'RADIO SONY CAMION',monto:74990,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Otro'},
+  {id:'g55',tipo:'gasto',fecha:'2025-08-31',detalle:'PARLANTES CAMION',monto:24990,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Otro'},
+  // INGRESOS SEPTIEMBRE 2025
+  {id:'h88',tipo:'ingreso',fecha:'2025-09-03',detalle:'PEONETA CCU COPETE YALE DON FREDY',monto:30000,hora:'',pago:'SI',boleta:'SI',cliente:'CCU'},
+  {id:'h89',tipo:'ingreso',fecha:'2025-09-04',detalle:'RETIRO ALEMANA COSAS (ALEMANA LAS CONDES Y LO BARNECHEA) ESTORIL CERRADO',monto:50000,hora:'',pago:'SI',boleta:'',cliente:'YOURFIRST'},
+  {id:'h90',tipo:'ingreso',fecha:'2025-09-05',detalle:'RETIRO ALEMANA COSAS (INDEPENDENCIA, SANTIAGO CENTRO Y ESTORIL)',monto:40000,hora:'',pago:'SI',boleta:'SI',cliente:'YOURFIRST'},
+  {id:'h91',tipo:'ingreso',fecha:'2025-09-06',detalle:'SABADO MONTAJE Y DESMONTAJE ALEMANA SPORT NACIONAL (CON PABLO)',monto:80000,hora:'',pago:'SI',boleta:'',cliente:'YOURFIRST'},
+  {id:'h92',tipo:'ingreso',fecha:'2025-09-07',detalle:'DOMINGO MONTAJE Y DESMONTAJE ALEMANA SPORT NACIONAL (PAGUE 50 A PAPA)',monto:130000,hora:'',pago:'SI',boleta:'',cliente:'YOURFIRST'},
+  {id:'h93',tipo:'ingreso',fecha:'2025-09-10',detalle:'FLETE CASE DE MALAGA 85 A HOTEL BLEST WESTERN',monto:35000,hora:'',pago:'SI',boleta:'SI',cliente:'PABLO'},
+  {id:'h94',tipo:'ingreso',fecha:'2025-09-12',detalle:'FLETE SACAR CASE',monto:35000,hora:'',pago:'SI',boleta:'SI',cliente:'PABLO'},
+  {id:'h95',tipo:'ingreso',fecha:'2025-09-13',detalle:'FLETE MONTAJE Y DESMONTAJE ALEMANA SPORT NACIONAL SOLO TOLDOS (A PAPA LE PAGUE 40)',monto:110000,hora:'',pago:'SI',boleta:'',cliente:'YOURFIRST'},
+  {id:'h96',tipo:'ingreso',fecha:'2025-09-14',detalle:'FLETE MONTAJE Y DESMONTAJE ALEMANA SPORT NACIONAL SOLO TOLDOS (CON PABLO)',monto:70000,hora:'',pago:'SI',boleta:'',cliente:'YOURFIRST'},
+  {id:'h97',tipo:'ingreso',fecha:'2025-09-16',detalle:'MUDANZA SEÑORA LAS CONDES 2KMS',monto:120000,hora:'',pago:'SI',boleta:'SI',cliente:'WSP'},
+  {id:'h98',tipo:'ingreso',fecha:'2025-09-27',detalle:'CLARO ARENA MONTAJE',monto:75000,hora:'',pago:'SI',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h99',tipo:'ingreso',fecha:'2025-09-27',detalle:'VUELTA EXTRA CLARO ARENA',monto:20000,hora:'',pago:'SI',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h100',tipo:'ingreso',fecha:'2025-09-28',detalle:'MONTAJE ONE CON PABLO',monto:40000,hora:'',pago:'SI',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h101',tipo:'ingreso',fecha:'2025-09-28',detalle:'CLARO ARENA DESMONTAJE',monto:75000,hora:'',pago:'SI',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h102',tipo:'ingreso',fecha:'2025-09-29',detalle:'DESMONTAJE ONE',monto:40000,hora:'',pago:'SI',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h103',tipo:'ingreso',fecha:'2025-09-29',detalle:'MONTAJE BOTANICO',monto:75000,hora:'',pago:'SI',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h104',tipo:'ingreso',fecha:'2025-09-30',detalle:'MONTAJE PANTALLA JUEGO FUTBOL (REDBULL)',monto:45000,hora:'',pago:'SI',boleta:'',cliente:'NEXO'},
+  {id:'h105',tipo:'ingreso',fecha:'2025-09-30',detalle:'DESMONTAJE BOTANICO',monto:75000,hora:'',pago:'SI',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h106',tipo:'ingreso',fecha:'2025-09-30',detalle:'ENTREGA COSAS ALEMANA',monto:40000,hora:'',pago:'SI',boleta:'',cliente:'YOURFIRST'},
+  // GASTOS SEPTIEMBRE 2025
+  {id:'g56',tipo:'gasto',fecha:'2025-08-31',detalle:'ELECTRONICA RETAIL LIMITADA',monto:28460,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Otro'},
+  {id:'g57',tipo:'gasto',fecha:'2025-09-01',detalle:'BENCINA',monto:10000,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Combustible'},
+  {id:'g58',tipo:'gasto',fecha:'2025-09-01',detalle:'PLAN MOVISTAR',monto:8242,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Otro'},
+  {id:'g59',tipo:'gasto',fecha:'2025-09-02',detalle:'BENCINA',monto:30942,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Combustible'},
+  {id:'g60',tipo:'gasto',fecha:'2025-09-05',detalle:'BENCINA',monto:30003,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Combustible'},
+  {id:'g61',tipo:'gasto',fecha:'2025-09-08',detalle:'SERVICIO CONTADOR',monto:40990,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Otro'},
+  {id:'g62',tipo:'gasto',fecha:'2025-09-08',detalle:'BANCO DE CREDITO E INVERSIONES',monto:5871,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Otro'},
+  {id:'g63',tipo:'gasto',fecha:'2025-09-10',detalle:'FOCUS GROUP REPUESTOS SPA',monto:30995,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Repuestos'},
+  {id:'g64',tipo:'gasto',fecha:'2025-09-11',detalle:'BENCINA',monto:29020,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Combustible'},
+  {id:'g65',tipo:'gasto',fecha:'2025-09-15',detalle:'COMPRESIMETRO DIESEL HERRAMIENTA',monto:42900,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Otro'},
+  {id:'g66',tipo:'gasto',fecha:'2025-09-15',detalle:'BENCINA',monto:30005,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Combustible'},
+  {id:'g67',tipo:'gasto',fecha:'2025-09-24',detalle:'BENCINA',monto:34558,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Combustible'},
+  {id:'g68',tipo:'gasto',fecha:'2025-09-24',detalle:'AUTOTEK EXTRACTOR MANUAL DIESEL',monto:39999,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Otro'},
+  {id:'g69',tipo:'gasto',fecha:'2025-09-27',detalle:'EXTRACTOR INYECTOR DIESEL',monto:76991,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Repuestos'},
+  {id:'g70',tipo:'gasto',fecha:'2025-09-28',detalle:'BENCINA',monto:34559,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Combustible'},
+  // INGRESOS OCTUBRE 2025
+  {id:'h107',tipo:'ingreso',fecha:'2025-10-01',detalle:'MONTAJE LOS DOMINICOS PISO 10',monto:40000,hora:'',pago:'SI',boleta:'SI',cliente:'MONTE OLIMPO'},
+  {id:'h108',tipo:'ingreso',fecha:'2025-10-02',detalle:'DESMONTAJE LOS DOMINICOS PISO 10',monto:40000,hora:'',pago:'SI',boleta:'SI',cliente:'MONTE OLIMPO'},
+  {id:'h109',tipo:'ingreso',fecha:'2025-10-04',detalle:'MONTAJE CENTROPARQUE',monto:40000,hora:'',pago:'*',boleta:'SI',cliente:'MONTE OLIMPO'},
+  {id:'h110',tipo:'ingreso',fecha:'2025-10-05',detalle:'DESMONTAJE CENTROPARQUE',monto:40000,hora:'',pago:'*',boleta:'SI',cliente:'MONTE OLIMPO'},
+  {id:'h111',tipo:'ingreso',fecha:'2025-10-08',detalle:'FLETE DOS VUELTAS USACH (ESTABA EN TOMA)',monto:80000,hora:'',pago:'*',boleta:'SI',cliente:'DGB'},
+  {id:'h112',tipo:'ingreso',fecha:'2025-10-09',detalle:'FLETE GRAFICAS, DESPUES FLETE CON ESCALERA',monto:40000,hora:'',pago:'OK',boleta:'NO',cliente:'AFUERA'},
+  {id:'h113',tipo:'ingreso',fecha:'2025-10-10',detalle:'MONTAJE PEONETA SAN CARLOS GATORADE',monto:30000,hora:'',pago:'OK',boleta:'NO',cliente:'AFUERA'},
+  {id:'h114',tipo:'ingreso',fecha:'2025-10-11',detalle:'MONTAJE BOSQUE LUZ (SUBLIME)',monto:30000,hora:'',pago:'OK',boleta:'NO',cliente:'MONTE OLIMPO'},
+  {id:'h115',tipo:'ingreso',fecha:'2025-10-12',detalle:'DESMONTAJE BOSQUE LUZ (SUBLIME)',monto:30000,hora:'',pago:'OK',boleta:'NO',cliente:'MONTE OLIMPO'},
+  {id:'h116',tipo:'ingreso',fecha:'2025-10-13',detalle:'DESMONTAJE SAN CARLOS GATORADE',monto:30000,hora:'',pago:'OK',boleta:'NO',cliente:'AFUERA'},
+  {id:'h117',tipo:'ingreso',fecha:'2025-10-16',detalle:'MONTAJE UNIVERSIDAD LOS ANDES 2 VUELTAS',monto:85000,hora:'10AM-8PM',pago:'OK',boleta:'NO',cliente:'AFUERA'},
+  {id:'h118',tipo:'ingreso',fecha:'2025-10-17',detalle:'DESMONTAJE U LOS ANDES 2 VUELTAS',monto:85000,hora:'10.30-4PM',pago:'OK',boleta:'NO',cliente:'AFUERA'},
+  {id:'h119',tipo:'ingreso',fecha:'2025-10-18',detalle:'MONTAJE ONE',monto:40000,hora:'',pago:'OK',boleta:'NO',cliente:'MONTE OLIMPO'},
+  {id:'h120',tipo:'ingreso',fecha:'2025-10-19',detalle:'DESMONTAJE ONE',monto:40000,hora:'',pago:'OK',boleta:'NO',cliente:'MONTE OLIMPO'},
+  {id:'h121',tipo:'ingreso',fecha:'2025-10-23',detalle:'FLETE LOGISTICA SCANIA (FACTURA)',monto:60000,hora:'',pago:'OK',boleta:'FACTURA',cliente:'DBG'},
+  {id:'h122',tipo:'ingreso',fecha:'2025-10-25',detalle:'CENTROPARQUE BANQUETAS Y MESAS',monto:45000,hora:'',pago:'OK',boleta:'NO',cliente:'MONTE OLIMPO'},
+  {id:'h123',tipo:'ingreso',fecha:'2025-10-26',detalle:'CENTROPARQUE DESMONTAJE',monto:40000,hora:'',pago:'OK',boleta:'NO',cliente:'MONTE OLIMPO'},
+  {id:'h124',tipo:'ingreso',fecha:'2025-10-31',detalle:'HALLOWEN MALLSPORT SALVAJE',monto:80000,hora:'',pago:'OK',boleta:'NO',cliente:'MONTE OLIMPO'},
+  {id:'h125',tipo:'ingreso',fecha:'2025-10-31',detalle:'HALLOWEN ONE',monto:80000,hora:'',pago:'OK',boleta:'NO',cliente:'MONTE OLIMPO'},
+  {id:'h126',tipo:'ingreso',fecha:'2025-10-31',detalle:'HALLOWEN MARRIOT',monto:80000,hora:'',pago:'OK',boleta:'NO',cliente:'MONTE OLIMPO'},
+  {id:'h127',tipo:'ingreso',fecha:'2025-10-31',detalle:'HALLOWEN MANDALA',monto:80000,hora:'',pago:'OK',boleta:'NO',cliente:'MONTE OLIMPO'},
+  {id:'h128',tipo:'ingreso',fecha:'2025-10-31',detalle:'HALLOWEN KISS AND SHOT',monto:80000,hora:'',pago:'OK',boleta:'NO',cliente:'MONTE OLIMPO'},
+  // GASTOS OCTUBRE 2025
+  {id:'g71',tipo:'gasto',fecha:'2025-10-01',detalle:'SERVICIOS EMPRESARIALES ALPHA CONSULTING SPA',monto:40990,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Otro'},
+  {id:'g72',tipo:'gasto',fecha:'2025-10-01',detalle:'BENCINA',monto:33103,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Combustible'},
+  {id:'g73',tipo:'gasto',fecha:'2025-10-01',detalle:'PLAN MOVISTAR',monto:8242,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Otro'},
+  {id:'g74',tipo:'gasto',fecha:'2025-10-06',detalle:'BANCO DE CREDITO E INVERSIONES',monto:5874,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Otro'},
+  {id:'g75',tipo:'gasto',fecha:'2025-10-07',detalle:'BENCINA',monto:27013,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Combustible'},
+  {id:'g76',tipo:'gasto',fecha:'2025-10-11',detalle:'BENCINA',monto:29884,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Combustible'},
+  {id:'g77',tipo:'gasto',fecha:'2025-10-12',detalle:'DECATHLON',monto:98000,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Otro'},
+  {id:'g78',tipo:'gasto',fecha:'2025-10-16',detalle:'BENCINA',monto:29176,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Combustible'},
+  {id:'g79',tipo:'gasto',fecha:'2025-10-17',detalle:'PEAJE COSTANERA NORTE',monto:5414,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Peaje'},
+  {id:'g80',tipo:'gasto',fecha:'2025-10-22',detalle:'BENCINA',monto:40729,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Combustible'},
+  {id:'g81',tipo:'gasto',fecha:'2025-10-24',detalle:'ASIA REPUESTOS SPA',monto:60000,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Repuestos'},
+  {id:'g82',tipo:'gasto',fecha:'2025-10-27',detalle:'CHICHARRA INALAMBRICA',monto:64480,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Otro'},
+  {id:'g83',tipo:'gasto',fecha:'2025-10-28',detalle:'CAMILLA MECANICA',monto:30926,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Otro'},
+  {id:'g84',tipo:'gasto',fecha:'2025-10-28',detalle:'RC REPUESTOS CENTER SA',monto:18000,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Repuestos'},
+  {id:'g85',tipo:'gasto',fecha:'2025-10-28',detalle:'AUTOMOTORA SANTIAGO LTDA',monto:3000,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Otro'},
+  {id:'g86',tipo:'gasto',fecha:'2025-10-28',detalle:'BENCINA',monto:28417,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Combustible'},
+  // INGRESOS NOVIEMBRE 2025
+  {id:'h129',tipo:'ingreso',fecha:'2025-10-30',detalle:'FLETE PARA ROSA DE PEONETA CON PABLO (CACHANTUN) MONTAJE Y DESMONTAJE NACIONAL',monto:80000,hora:'',pago:'OK',boleta:'',cliente:'AFUERA'},
+  {id:'h130',tipo:'ingreso',fecha:'2025-11-04',detalle:'MONTAJE CCU DOS VUELTAS 11AM-7PM',monto:70000,hora:'11AM-7PM',pago:'OK',boleta:'FACTURA',cliente:'AFUERA'},
+  {id:'h131',tipo:'ingreso',fecha:'2025-11-07',detalle:'RETIRO DE BODEGA ESTORIL 7PM COSAS PARA MONTAJE MAÑANA SAN CARLOS FIDACHI',monto:30000,hora:'',pago:'OK',boleta:'OK',cliente:'MONTE OLIMPO'},
+  {id:'h132',tipo:'ingreso',fecha:'2025-11-08',detalle:'MONTAJE ALEMANA SPORT SAN CARLOS FIDACHI',monto:40000,hora:'',pago:'OK',boleta:'OK',cliente:'MONTE OLIMPO'},
+  {id:'h133',tipo:'ingreso',fecha:'2025-11-08',detalle:'DESMONTAJE CCU 2 CAMIONES, 6 COOLERS Y BARRAS (CON PABLO Y PEONETA)',monto:70000,hora:'11PM',pago:'OK',boleta:'FACTURA',cliente:'AFUERA'},
+  {id:'h134',tipo:'ingreso',fecha:'2025-11-08',detalle:'MONTAR CCU MAS NUEVAMENTE CIRCO (COLOR RUN)',monto:70000,hora:'3AM',pago:'OK',boleta:'FACTURA',cliente:'AFUERA'},
+  {id:'h135',tipo:'ingreso',fecha:'2025-11-09',detalle:'DESMONTAR CCU MAS CIRCO (COLOR RUN)',monto:70000,hora:'2PM',pago:'OK',boleta:'FACTURA',cliente:'AFUERA'},
+  {id:'h136',tipo:'ingreso',fecha:'2025-11-09',detalle:'DESMONTAJE ALEMANA CON PABLO FIDACHI',monto:40000,hora:'6PM',pago:'OK',boleta:'OK',cliente:'MONTE OLIMPO'},
+  {id:'h137',tipo:'ingreso',fecha:'2025-11-10',detalle:'DEJAR COSAS ALEMANA A BODEGA FIDACHI',monto:30000,hora:'',pago:'OK',boleta:'OK',cliente:'MONTE OLIMPO'},
+  {id:'h138',tipo:'ingreso',fecha:'2025-11-11',detalle:'FLETE PEONETA 2 COOLER CCU',monto:25000,hora:'',pago:'OK',boleta:'FACTURA',cliente:'AFUERA'},
+  {id:'h139',tipo:'ingreso',fecha:'2025-11-12',detalle:'PEONETA CON PABLO TODO EL DIA, AUSTRAL TRASERA Y BARRAS',monto:70000,hora:'',pago:'OK',boleta:'FACTURA',cliente:'AFUERA'},
+  {id:'h140',tipo:'ingreso',fecha:'2025-11-14',detalle:'PREPARAR STAND ECO CUERO MADERA PARA SABADO ETMDAY',monto:50000,hora:'',pago:'',boleta:'',cliente:'ALEMANA'},
+  {id:'h141',tipo:'ingreso',fecha:'2025-11-14',detalle:'MONTAJE PALESTINO',monto:25000,hora:'',pago:'OK',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h142',tipo:'ingreso',fecha:'2025-11-15',detalle:'DESMONTAJE PALESTINO',monto:25000,hora:'5AM',pago:'OK',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h143',tipo:'ingreso',fecha:'2025-11-15',detalle:'MONTAJE STAND ALEMANA EN VITACURA BICENTENARIO ETMDAY',monto:50000,hora:'8AM',pago:'',boleta:'',cliente:'ALEMANA'},
+  {id:'h144',tipo:'ingreso',fecha:'2025-11-15',detalle:'MONTAJE HILARIA',monto:50000,hora:'2PM',pago:'OK',boleta:'FACTURA',cliente:'MONTE OLIMPO'},
+  {id:'h145',tipo:'ingreso',fecha:'2025-11-16',detalle:'DESMONTAJE HILARIA',monto:50000,hora:'',pago:'OK',boleta:'FACTURA',cliente:'MONTE OLIMPO'},
+  {id:'h146',tipo:'ingreso',fecha:'2025-11-16',detalle:'MONTAJE BOSQUE LUZ PEONETA',monto:25000,hora:'',pago:'OK',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h147',tipo:'ingreso',fecha:'2025-11-16',detalle:'DESMONTAJE BOSQUE LUZ PEONETA',monto:25000,hora:'',pago:'OK',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h148',tipo:'ingreso',fecha:'2025-11-17',detalle:'FLETE IR A BUSCAR QUITASOLES (4 QUITASOLES NUEVOS)',monto:40000,hora:'',pago:'OK',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h149',tipo:'ingreso',fecha:'2025-11-18',detalle:'MONTAJE 10 QUITASOLES ESPACIO RIESCO CON PABLO (ISI)',monto:45000,hora:'',pago:'OK',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h150',tipo:'ingreso',fecha:'2025-11-19',detalle:'RETIRO COSAS DE ALEMANA Y DEJAR COSAS EN BICENTENARIO ETMDAY',monto:25000,hora:'',pago:'',boleta:'',cliente:'ALEMANA'},
+  {id:'h151',tipo:'ingreso',fecha:'2025-11-19',detalle:'FLETE EXTRA 10 MESAS Y 20 BANQUETAS DE PICNIC A ESPACIO RIESCO (ISI)',monto:40000,hora:'',pago:'OK',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h152',tipo:'ingreso',fecha:'2025-11-19',detalle:'FLETE AEROPUERTO IGNACIO RIFFO',monto:40000,hora:'',pago:'OK',boleta:'FACTURA',cliente:'PABLO'},
+  {id:'h153',tipo:'ingreso',fecha:'2025-11-20',detalle:'FLETE 14 MESAS EXTRAS PARA RIESCO (CON PEONETA)',monto:60000,hora:'',pago:'OK',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h154',tipo:'ingreso',fecha:'2025-11-21',detalle:'DESMONTAJE RIESCO QUITASOLES Y PICNIC (ISI)',monto:45000,hora:'3AM',pago:'OK',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h155',tipo:'ingreso',fecha:'2025-11-21',detalle:'MONTAJE ZAMNA RIESCO',monto:50000,hora:'2PM-8PM',pago:'OK',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h156',tipo:'ingreso',fecha:'2025-11-22',detalle:'MONTAJE NACIONAL LOUNGE PALLET Y MIMBRE 2 VUELTAS (CON PABLO Y LOS CABROS)',monto:55000,hora:'',pago:'OK',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h157',tipo:'ingreso',fecha:'2025-11-22',detalle:'DESMONTAJE STAND ALEMANA ETMDAY',monto:50000,hora:'9PM',pago:'',boleta:'',cliente:'ALEMANA'},
+  {id:'h158',tipo:'ingreso',fecha:'2025-11-23',detalle:'DESMONTAJE ZAMNA',monto:50000,hora:'4AM',pago:'OK',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h159',tipo:'ingreso',fecha:'2025-11-23',detalle:'MONTAJE HUECHURABA WILLY',monto:40000,hora:'7AM',pago:'OK',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h160',tipo:'ingreso',fecha:'2025-11-23',detalle:'MONTAJE ONE 4 LOUNGE PALLET',monto:35000,hora:'12PM',pago:'OK',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h161',tipo:'ingreso',fecha:'2025-11-23',detalle:'DESMONTAJE NACIONAL',monto:55000,hora:'4PM',pago:'OK',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h162',tipo:'ingreso',fecha:'2025-11-23',detalle:'DESMONTAJE ONE SOLO CON PABLO',monto:35000,hora:'12PM',pago:'OK',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h163',tipo:'ingreso',fecha:'2025-11-24',detalle:'DESMONTAJE HUECHURABA WILLY CON PABLO',monto:40000,hora:'9AM',pago:'OK',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h164',tipo:'ingreso',fecha:'2025-11-24',detalle:'30 MESAS TOLIX DE BODEGA QUILICURA A BODEGA CABROS CON PABLO',monto:40000,hora:'11AM',pago:'OK',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h165',tipo:'ingreso',fecha:'2025-11-27',detalle:'FLETE CCU BARRA AUSTRAL DE GUANACO A BODEGA CCU',monto:60000,hora:'10AM',pago:'OK',boleta:'FACTURA',cliente:'AFUERA'},
+  {id:'h166',tipo:'ingreso',fecha:'2025-11-27',detalle:'FLETE DEJAR COSAS ALEMANA',monto:25000,hora:'',pago:'',boleta:'',cliente:'ALEMANA'},
+  {id:'h167',tipo:'ingreso',fecha:'2025-11-29',detalle:'SALVAJE METROPOLITAN',monto:80000,hora:'',pago:'OK',boleta:'FACTURA',cliente:'MONTE OLIMPO'},
+  {id:'h168',tipo:'ingreso',fecha:'2025-11-29',detalle:'ALDEA SANTA MARTINA HACIENDA',monto:80000,hora:'',pago:'OK',boleta:'FACTURA',cliente:'MONTE OLIMPO'},
+  // INGRESOS DICIEMBRE 2025
+  {id:'h169',tipo:'ingreso',fecha:'2025-12-03',detalle:'FLETE CENTRO PARQUE 6 MESAS PARA MINERIA',monto:30000,hora:'',pago:'OK',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h170',tipo:'ingreso',fecha:'2025-12-04',detalle:'MONTAJE MAS DE PEONETA PULSAR',monto:40000,hora:'',pago:'OK',boleta:'',cliente:'AFUERA'},
+  {id:'h171',tipo:'ingreso',fecha:'2025-12-05',detalle:'MONTAJE Y DESMONTAJE LIPTON CON PEONETA (JOHAN)',monto:180000,hora:'',pago:'OK',boleta:'',cliente:'AFUERA'},
+  {id:'h172',tipo:'ingreso',fecha:'2025-12-06',detalle:'MONTAJE MATRIMONIO CON PEONETA (PAPA)',monto:70000,hora:'',pago:'OK',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h173',tipo:'ingreso',fecha:'2025-12-06',detalle:'MONTAJE CENTROPARQUE CON MI PAPA',monto:80000,hora:'',pago:'OK',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h174',tipo:'ingreso',fecha:'2025-12-07',detalle:'RETIRO MATRIMONIO CON PAPA',monto:70000,hora:'',pago:'OK',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h175',tipo:'ingreso',fecha:'2025-12-07',detalle:'RETIRO CENTRO PARQUE CON PAPA',monto:80000,hora:'',pago:'OK',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h176',tipo:'ingreso',fecha:'2025-12-07',detalle:'DESMONTAJE PULSAR CON PABLO MAS',monto:40000,hora:'',pago:'OK',boleta:'',cliente:'AFUERA'},
+  {id:'h177',tipo:'ingreso',fecha:'2025-12-08',detalle:'MONTAJE RIESCO Y BOSQUE LUZ CON PABLO',monto:40000,hora:'',pago:'OK',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h178',tipo:'ingreso',fecha:'2025-12-08',detalle:'DESMONTAJES RIESCO Y BOSQUE LUZ CON PABLO',monto:40000,hora:'',pago:'OK',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h179',tipo:'ingreso',fecha:'2025-12-08',detalle:'RETIRO COOLER PALESTINO COOLER STONE',monto:15000,hora:'',pago:'OK',boleta:'',cliente:'AFUERA'},
+  {id:'h180',tipo:'ingreso',fecha:'2025-12-11',detalle:'MONTAJE CCU CON JOHAN CACHANTUN',monto:65000,hora:'',pago:'OK',boleta:'',cliente:'AFUERA'},
+  {id:'h181',tipo:'ingreso',fecha:'2025-12-11',detalle:'MONTAJE DE PEONETA CCU EDIFICIO CORPORATIVO CON PABLO',monto:30000,hora:'',pago:'OK',boleta:'',cliente:'AFUERA'},
+  {id:'h182',tipo:'ingreso',fecha:'2025-12-12',detalle:'MONTAJE Y DESMONTAJE PEONETA TABURETES Y MESAS ALTO SAN FRANCISCO INDEPENDENCIA CON PABLO',monto:60000,hora:'',pago:'OK',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h183',tipo:'ingreso',fecha:'2025-12-12',detalle:'MONTAJE SANTA LAURA ESTADIO 2 VUELTAS CON PABLO',monto:95000,hora:'',pago:'OK',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h184',tipo:'ingreso',fecha:'2025-12-13',detalle:'MONTAJE 5 MESAS 20 TABURETES RIESCO',monto:35000,hora:'',pago:'OK',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h185',tipo:'ingreso',fecha:'2025-12-14',detalle:'DESMONTAJE SANTA CLARA',monto:95000,hora:'',pago:'OK',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h186',tipo:'ingreso',fecha:'2025-12-14',detalle:'MONTAJE Y DESMONTAJE ONE PALLET SUNSET',monto:60000,hora:'',pago:'OK',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h187',tipo:'ingreso',fecha:'2025-12-14',detalle:'DESMONTAJE DE RIESCO 5 MESAS Y 20 TABURETES',monto:35000,hora:'',pago:'OK',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h188',tipo:'ingreso',fecha:'2025-12-15',detalle:'RETIRO DE COSAS PEONETA CCU LIPTON CORPORATIVO',monto:30000,hora:'',pago:'OK',boleta:'',cliente:'AFUERA'},
+  {id:'h189',tipo:'ingreso',fecha:'2025-12-18',detalle:'PEONETA MONTAJE Y DESMONTAJE SCHOOL GARDEN CON PABLO',monto:60000,hora:'',pago:'OK',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h190',tipo:'ingreso',fecha:'2025-12-18',detalle:'MONTAJE Y DESMONTAJE EL ARRAYAN (SOLO)',monto:90000,hora:'',pago:'OK',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h191',tipo:'ingreso',fecha:'2025-12-19',detalle:'TODO EL DIA DE PEONETA, RETIRO CACHANTUN CCU, MONTAJE DOS SILLONES LOS DOMINICOS',monto:50000,hora:'',pago:'OK',boleta:'',cliente:'AFUERA'},
+  {id:'h192',tipo:'ingreso',fecha:'2025-12-20',detalle:'RETIRO 2 SILLONES LOS DOMINICOS',monto:20000,hora:'',pago:'OK',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h193',tipo:'ingreso',fecha:'2025-12-20',detalle:'MONTAJE CON TOBI CENTROPARQUE',monto:80000,hora:'',pago:'OK',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h194',tipo:'ingreso',fecha:'2025-12-20',detalle:'DESMONTAJE CON PABLO CENTROPARQUE',monto:40000,hora:'',pago:'OK',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h195',tipo:'ingreso',fecha:'2025-12-20',detalle:'ETMDAY MES PASADO ALEMANA',monto:200000,hora:'',pago:'OK',boleta:'',cliente:'ALEMANA'},
+  {id:'h196',tipo:'ingreso',fecha:'2025-12-22',detalle:'RETIRO 2 COOLER CCU',monto:30000,hora:'',pago:'OK',boleta:'',cliente:'AFUERA'},
+  {id:'h197',tipo:'ingreso',fecha:'2025-12-26',detalle:'MONTAJE Y DESMONTAJE PALESTINO CON PABLO 6 LOUNGES DE PALLET',monto:90000,hora:'',pago:'OK',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h198',tipo:'ingreso',fecha:'2025-12-31',detalle:'MONTAJE Y DESMONTAJE CACHAGUA AÑO NUEVO',monto:250000,hora:'',pago:'OK',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h199',tipo:'ingreso',fecha:'2025-12-31',detalle:'MONTAJE Y DESMONTAJE CENTROPARQUE AÑO NUEVO',monto:100000,hora:'',pago:'OK',boleta:'',cliente:'MONTE OLIMPO'},
+  // INGRESOS ENERO 2026
+  {id:'h200',tipo:'ingreso',fecha:'2026-01-02',detalle:'PEONETA UNIVERSIDAD DE CHILE Y CATOLICA (DIA CTM)',monto:60000,hora:'',pago:'OK',boleta:'',cliente:'AFUERA'},
+  {id:'h201',tipo:'ingreso',fecha:'2026-01-06',detalle:'EVENTO COLINA EN MI CAMION (SANTA CECILIA) 2 COOLER',monto:50000,hora:'',pago:'OK',boleta:'',cliente:'AFUERA'},
+  {id:'h202',tipo:'ingreso',fecha:'2026-01-06',detalle:'INVENTARIO ALEMANA EN MI CAMION',monto:50000,hora:'',pago:'',boleta:'',cliente:'ALEMANA'},
+  {id:'h203',tipo:'ingreso',fecha:'2026-01-07',detalle:'MONTAJE 2 PERGOLAS EN COLINA CON JOHAN Y PABLO',monto:60000,hora:'',pago:'OK',boleta:'',cliente:'AFUERA'},
+  {id:'h204',tipo:'ingreso',fecha:'2026-01-07',detalle:'PEONETA CLUB HIPICO SOLO ORDENAR CON PABLO Y JOHAN',monto:30000,hora:'',pago:'OK',boleta:'',cliente:'AFUERA'},
+  {id:'h205',tipo:'ingreso',fecha:'2026-01-07',detalle:'DESMONTAJE U DE CHILE Y CATOLICA (8 COOLER 2 TACA TACA) CON PABLO EN LOS DOS CAMIONES',monto:50000,hora:'',pago:'OK',boleta:'',cliente:'AFUERA'},
+  {id:'h206',tipo:'ingreso',fecha:'2026-01-08',detalle:'DESMONTAJE PERGOLAS EN COLINA (CAMION PABLO)',monto:30000,hora:'',pago:'OK',boleta:'',cliente:'AFUERA'},
+  {id:'h207',tipo:'ingreso',fecha:'2026-01-08',detalle:'DIA KLAO NOS DEVOLVIMOS A BUSCAR EL COOLER',monto:30000,hora:'',pago:'OK',boleta:'',cliente:'AFUERA'},
+  {id:'h208',tipo:'ingreso',fecha:'2026-01-09',detalle:'DESMONTAJE ESPACIO RIESCO 2 CAMIONES',monto:50000,hora:'',pago:'OK',boleta:'',cliente:'AFUERA'},
+  {id:'h209',tipo:'ingreso',fecha:'2026-01-09',detalle:'RETIRO DE LETREROS LIPTON A RECOLETA (MI CAMION)',monto:40000,hora:'',pago:'OK',boleta:'',cliente:'AFUERA'},
+  {id:'h210',tipo:'ingreso',fecha:'2026-01-12',detalle:'PEONETA A VIÑA A DEJAR BODEGA',monto:30000,hora:'',pago:'OK',boleta:'',cliente:'AFUERA'},
+  {id:'h211',tipo:'ingreso',fecha:'2026-01-13',detalle:'DESPACHO BARRA CHOPERA A CLUB DE POLO (EN MI CAMION) CON LOS CABROS PABLO Y MARCELO',monto:50000,hora:'',pago:'OK',boleta:'',cliente:'AFUERA'},
+  {id:'h212',tipo:'ingreso',fecha:'2026-01-13',detalle:'MONTAJE 2 TOLDOS ARAÑA EN RENCA Y 3 COOLER CCU',monto:30000,hora:'',pago:'OK',boleta:'',cliente:'AFUERA'},
+  {id:'h213',tipo:'ingreso',fecha:'2026-01-15',detalle:'DESMONTAJE 2 TOLDOS ARAÑA RENCA CCU',monto:30000,hora:'',pago:'OK',boleta:'',cliente:'AFUERA'},
+  {id:'h214',tipo:'ingreso',fecha:'2026-01-16',detalle:'MONTAJE TOLDO EN VIÑA MAR PEONETA',monto:30000,hora:'',pago:'OK',boleta:'',cliente:'AFUERA'},
+  {id:'h215',tipo:'ingreso',fecha:'2026-01-17',detalle:'PEONETA A RITOQUE 12 SILLONES 12 MESAS',monto:30000,hora:'',pago:'OK',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h216',tipo:'ingreso',fecha:'2026-01-28',detalle:'MONTAJE Y DESMONTAJE ESTADIO NACIONAL',monto:240000,hora:'',pago:'OK',boleta:'',cliente:''},
+  // INGRESOS FEBRERO 2026
+  {id:'h217',tipo:'ingreso',fecha:'2026-02-03',detalle:'PEONETA CASABLANCA',monto:30000,hora:'',pago:'OK',boleta:'',cliente:'CCU'},
+  {id:'h218',tipo:'ingreso',fecha:'2026-02-04',detalle:'PEONETA TACA TACA, CON CON Y DEJAR 2 COSAS',monto:40000,hora:'',pago:'OK',boleta:'',cliente:'CCU'},
+  {id:'h219',tipo:'ingreso',fecha:'2026-02-04',detalle:'MUDANZA PABLO LO QUE HABIA QUEDADO',monto:60000,hora:'',pago:'OK',boleta:'',cliente:'NACHO'},
+  {id:'h220',tipo:'ingreso',fecha:'2026-02-06',detalle:'PEONETA 2 CONGELADORAS AL NACIONAL',monto:30000,hora:'',pago:'OK',boleta:'',cliente:'CCU'},
+  {id:'h221',tipo:'ingreso',fecha:'2026-02-08',detalle:'PEONETA RETIRO BANCAS CCU NACIONAL',monto:30000,hora:'',pago:'OK',boleta:'',cliente:'CCU'},
+  {id:'h222',tipo:'ingreso',fecha:'2026-02-11',detalle:'PEONETA RETIRO BARRA CLUB DE POLO',monto:30000,hora:'',pago:'OK',boleta:'',cliente:'CCU'},
+  {id:'h223',tipo:'ingreso',fecha:'2026-02-13',detalle:'FLETE VARIOS PUNTOS MAIPU (SUBIMOS LAS COSAS CON EL PABLO)',monto:80000,hora:'',pago:'OK',boleta:'',cliente:''},
+  {id:'h224',tipo:'ingreso',fecha:'2026-02-16',detalle:'RETIRO ALEMANA SPORT Y CLINICA ALEMANA Y DESPUES MONTAJE ATP (CON CABROS Y PABLO)',monto:75000,hora:'',pago:'',boleta:'',cliente:''},
+  {id:'h225',tipo:'ingreso',fecha:'2026-02-24',detalle:'MONTAJE Y DESMONTAJE CENTRO PARQUE',monto:60000,hora:'',pago:'OK',boleta:'',cliente:''},
+  {id:'h226',tipo:'ingreso',fecha:'2026-02-26',detalle:'FLETE MONTAJE CON MARCELO 1 COOLER 1 LOUNGE',monto:80000,hora:'',pago:'OK',boleta:'',cliente:'CCU'},
+  {id:'h227',tipo:'ingreso',fecha:'2026-02-27',detalle:'PEONETA MONTAJE LIMON SODA FINIS TERRAE',monto:30000,hora:'',pago:'OK',boleta:'',cliente:'CCU'},
+  {id:'h228',tipo:'ingreso',fecha:'2026-02-28',detalle:'MONTAJE Y DESMONTAJE CENTROPARQUE (CON PAPA 40)',monto:140000,hora:'',pago:'OK',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h229',tipo:'ingreso',fecha:'2026-02-28',detalle:'MONTAJE Y DESMONTAJE CLUB PALESTINO (CON PAPA Y SEBA 65)',monto:140000,hora:'',pago:'OK',boleta:'',cliente:'MONTE OLIMPO'},
+  // INGRESOS MARZO 2026
+  {id:'h230',tipo:'ingreso',fecha:'2026-03-01',detalle:'PEONETA MONTAJE UNI CATOLICA',monto:30000,hora:'',pago:'',boleta:'',cliente:'CCU'},
+  {id:'h231',tipo:'ingreso',fecha:'2026-03-01',detalle:'ACOPIO DE COSAS ALEMANA',monto:30000,hora:'',pago:'',boleta:'',cliente:'ALEMANA'},
+  {id:'h232',tipo:'ingreso',fecha:'2026-03-02',detalle:'DESMONTAJE ATP ALEMANA Y DESPACHOS',monto:75000,hora:'',pago:'',boleta:'',cliente:'ALEMANA'},
+  {id:'h233',tipo:'ingreso',fecha:'2026-03-03',detalle:'FLETE DESMONTAJE 2 UNIVERSIDADES CON JOHAN (160 TOTAL)',monto:160000,hora:'',pago:'',boleta:'',cliente:'CCU'},
+  {id:'h234',tipo:'ingreso',fecha:'2026-03-05',detalle:'MONTAJE ONE CON 2 CAMIONES CON JOHAN',monto:160000,hora:'',pago:'OK',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h235',tipo:'ingreso',fecha:'2026-03-07',detalle:'MONTAJE Y DESMONTAJE CENTROPARQUE SOLO',monto:80000,hora:'',pago:'OK',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h236',tipo:'ingreso',fecha:'2026-03-07',detalle:'RETIRO COSAS BODEGA DE MINIMIXER',monto:50000,hora:'',pago:'OK',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h237',tipo:'ingreso',fecha:'2026-03-07',detalle:'MONTAJE Y DESMONTAJE TEATRO C CON SEBA (PAGUE 40 A SEBA)',monto:140000,hora:'',pago:'',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h238',tipo:'ingreso',fecha:'2026-03-07',detalle:'MONTAJE Y DESMONTAJE PALESTINO (30 A SEBA)',monto:120000,hora:'',pago:'',boleta:'',cliente:'MONTE OLIMPO'},
+  {id:'h239',tipo:'ingreso',fecha:'2026-03-15',detalle:'DESMONTAJE CON PABLO AYUDA CENTROPARQUE',monto:20000,hora:'',pago:'',boleta:'',cliente:''},
+  {id:'h240',tipo:'ingreso',fecha:'2026-03-15',detalle:'MONTAJE Y DESMONTAJE BOSQUE LUZ',monto:160000,hora:'',pago:'',boleta:'',cliente:''},
+];
+
+// ==================== STORAGE ====================
+const STORAGE_KEY = 'transportes_lucas_spa_v1';
+
+function cargarDatos() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    return JSON.parse(raw);
+  } catch { return []; }
+}
+
+function guardarDatos(datos) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(datos));
+}
+
+function getTodos() {
+  const guardados = cargarDatos();
+  // Combinar histórico + guardados, evitar duplicados por id
+  const idsGuardados = new Set(guardados.map(r => r.id));
+  const hist = HISTORICO.filter(r => !idsGuardados.has(r.id));
+  return [...hist, ...guardados].sort((a,b) => a.fecha.localeCompare(b.fecha));
+}
+
+// ==================== ESTADO ====================
+let tipoActual = 'ingreso';
+let mesResumenActual = null;
+
+// ==================== INIT ====================
+document.addEventListener('DOMContentLoaded', () => {
+  // Fecha de hoy por defecto
+  document.getElementById('f-fecha').value = new Date().toISOString().split('T')[0];
+  actualizarHeaderBalance();
+  renderFiltroMes();
+  renderMesChips();
+  actualizarDatalist();
+});
+
+// ==================== TIPO ====================
+function setTipo(tipo) {
+  tipoActual = tipo;
+  const btnI = document.getElementById('btn-ingreso');
+  const btnG = document.getElementById('btn-gasto');
+  const gCat = document.getElementById('g-categoria');
+  const gCliente = document.getElementById('g-cliente');
+  const gBoleta = document.getElementById('g-boleta');
+
+  if (tipo === 'ingreso') {
+    btnI.className = 'type-btn active-ingreso';
+    btnG.className = 'type-btn';
+    gCat.style.display = 'none';
+    gCliente.style.display = '';
+    gBoleta.style.display = '';
+  } else {
+    btnG.className = 'type-btn active-gasto';
+    btnI.className = 'type-btn';
+    gCat.style.display = '';
+    gCliente.style.display = 'none';
+    gBoleta.style.display = 'none';
+  }
+}
+
+// ==================== GUARDAR ====================
+function guardarRegistro() {
+  const fecha = document.getElementById('f-fecha').value;
+  const monto = parseInt(document.getElementById('f-monto').value);
+  const detalle = document.getElementById('f-detalle').value.trim().toUpperCase();
+  const cliente = document.getElementById('f-cliente').value.trim().toUpperCase();
+  const hora = document.getElementById('f-hora').value.trim();
+  const pago = document.getElementById('f-pago').value;
+  const boleta = document.getElementById('f-boleta').value;
+  const categoria = document.getElementById('f-categoria').value;
+
+  if (!fecha || !monto || !detalle) {
+    showToast('Completa fecha, monto y detalle', true);
+    return;
+  }
+
+  const nuevo = {
+    id: 'r_' + Date.now(),
+    tipo: tipoActual,
+    fecha, monto, detalle, hora, pago, boleta,
+    cliente: tipoActual === 'ingreso' ? cliente : '',
+    categoria: tipoActual === 'gasto' ? categoria : ''
+  };
+
+  const datos = cargarDatos();
+  datos.push(nuevo);
+  guardarDatos(datos);
+
+  // Limpiar form
+  document.getElementById('f-monto').value = '';
+  document.getElementById('f-detalle').value = '';
+  document.getElementById('f-cliente').value = '';
+  document.getElementById('f-hora').value = '';
+  document.getElementById('f-fecha').value = new Date().toISOString().split('T')[0];
+
+  actualizarHeaderBalance();
+  renderFiltroMes();
+  renderMesChips();
+  actualizarDatalist();
+  showToast('✅ Registro guardado!');
+}
+
+// ==================== ELIMINAR ====================
+function eliminarRegistro(id) {
+  if (!confirm('¿Eliminar este registro?')) return;
+  // Solo se pueden eliminar registros guardados (no históricos)
+  const datos = cargarDatos().filter(r => r.id !== id);
+  guardarDatos(datos);
+  actualizarHeaderBalance();
+  renderRegistros();
+  renderFiltroMes();
+  renderMesChips();
+  showToast('Registro eliminado');
+}
+
+// ==================== RENDER REGISTROS ====================
+function renderRegistros() {
+  const todos = getTodos();
+  const busqueda = document.getElementById('searchInput').value.toLowerCase();
+  const filtroTipo = document.getElementById('filtroTipo').value;
+  const filtroMes = document.getElementById('filtroMes').value;
+
+  let filtrados = todos.filter(r => {
+    const matchBusq = !busqueda ||
+      r.detalle.toLowerCase().includes(busqueda) ||
+      (r.cliente||'').toLowerCase().includes(busqueda);
+    const matchTipo = !filtroTipo || r.tipo === filtroTipo;
+    const matchMes = !filtroMes || r.fecha.substring(0,7) === filtroMes;
+    return matchBusq && matchTipo && matchMes;
+  });
+
+  // Agrupar por mes (descendente)
+  const porMes = {};
+  filtrados.forEach(r => {
+    const k = r.fecha.substring(0,7);
+    if (!porMes[k]) porMes[k] = [];
+    porMes[k].push(r);
+  });
+
+  const meses = Object.keys(porMes).sort().reverse();
+  const container = document.getElementById('registros-list');
+
+  if (meses.length === 0) {
+    container.innerHTML = '<div class="empty-state"><div class="icon">📭</div><div>No hay registros</div></div>';
+    return;
+  }
+
+  container.innerHTML = meses.map(mes => {
+    const regs = porMes[mes];
+    const totalIngresos = regs.filter(r=>r.tipo==='ingreso').reduce((s,r)=>s+r.monto,0);
+    const totalGastos = regs.filter(r=>r.tipo==='gasto').reduce((s,r)=>s+r.monto,0);
+    const balance = totalIngresos - totalGastos;
+
+    return `
+      <div class="mes-header">
+        <span>${formatMesLabel(mes)}</span>
+        <span class="mes-total-badge" style="color:${balance>=0?'#2ecc71':'#e74c3c'}">${balance>=0?'+':''}${fmt(balance)}</span>
+      </div>
+      ${regs.reverse().map(r => `
+        <div class="registro-item">
+          <div class="reg-left">
+            <div class="reg-detalle">${r.detalle}</div>
+            <div class="reg-meta">
+              ${r.fecha ? `<span class="badge badge-fecha">${r.fecha.split('-').reverse().join('/')}</span>` : ''}
+              ${r.cliente ? `<span class="badge badge-cliente">${r.cliente}</span>` : ''}
+              ${r.categoria ? `<span class="badge badge-cliente" style="background:rgba(231,76,60,0.12);color:#e74c3c">${r.categoria}</span>` : ''}
+              ${r.hora ? `<span class="badge badge-hora">${r.hora}</span>` : ''}
+              ${r.pago ? `<span class="badge badge-pago">${r.pago}</span>` : ''}
+              ${r.boleta && r.boleta !== '' && r.boleta !== 'NO' ? `<span class="badge badge-boleta">📄 ${r.boleta === 'SI' ? 'BOLETA' : r.boleta}</span>` : ''}
+            </div>
+          </div>
+          <div class="reg-right">
+            <span class="reg-monto ${r.tipo==='ingreso'?'monto-ingreso':'monto-gasto'}">
+              ${r.tipo==='gasto'?'-':''}${fmt(r.monto)}
+            </span>
+            ${!r.id.startsWith('h') ? `<button class="btn btn-danger" onclick="eliminarRegistro('${r.id}')">🗑</button>` : ''}
+          </div>
+        </div>
+      `).join('')}
+    `;
+  }).join('');
+}
+
+// ==================== RESUMEN ====================
+function renderMesChips() {
+  const todos = getTodos();
+  const meses = [...new Set(todos.map(r => r.fecha.substring(0,7)))].sort().reverse();
+
+  if (!mesResumenActual || !meses.includes(mesResumenActual)) {
+    mesResumenActual = meses[0] || null;
+  }
+
+  document.getElementById('mes-chips').innerHTML = meses.map(m => `
+    <div class="mes-chip ${m === mesResumenActual ? 'active' : ''}" onclick="selectMesResumen('${m}')">
+      ${formatMesLabel(m)}
+    </div>
+  `).join('');
+
+  renderResumen();
+}
+
+function selectMesResumen(mes) {
+  mesResumenActual = mes;
+  renderMesChips();
+}
+
+function renderResumen() {
+  if (!mesResumenActual) {
+    document.getElementById('resumen-content').innerHTML = '<div class="empty-state"><div class="icon">📊</div><div>Sin datos</div></div>';
+    return;
+  }
+
+  const todos = getTodos().filter(r => r.fecha.substring(0,7) === mesResumenActual);
+  const ingresos = todos.filter(r => r.tipo === 'ingreso');
+  const gastos = todos.filter(r => r.tipo === 'gasto');
+  const totalI = ingresos.reduce((s,r)=>s+r.monto,0);
+  const totalG = gastos.reduce((s,r)=>s+r.monto,0);
+  const balance = totalI - totalG;
+
+  // Por cliente
+  const porCliente = {};
+  ingresos.forEach(r => {
+    const c = r.cliente || 'Sin cliente';
+    if (!porCliente[c]) porCliente[c] = 0;
+    porCliente[c] += r.monto;
+  });
+  const topClientes = Object.entries(porCliente).sort((a,b)=>b[1]-a[1]).slice(0,5);
+
+  // Balance total histórico
+  const todosH = getTodos();
+  const totalIH = todosH.filter(r=>r.tipo==='ingreso').reduce((s,r)=>s+r.monto,0);
+  const totalGH = todosH.filter(r=>r.tipo==='gasto').reduce((s,r)=>s+r.monto,0);
+  const balanceH = totalIH - totalGH;
+  const mesesCount = [...new Set(todosH.map(r=>r.fecha.substring(0,7)))].length;
+
+  document.getElementById('resumen-content').innerHTML = `
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Ingresos</div>
+        <div class="stat-value green">${fmt(totalI)}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Gastos</div>
+        <div class="stat-value red">${fmt(totalG)}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Balance</div>
+        <div class="stat-value ${balance>=0?'green':'red'}">${fmt(balance)}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Servicios</div>
+        <div class="stat-value white">${ingresos.length}</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🏆 Top Clientes del Mes</div>
+      ${topClientes.length === 0 ? '<div style="color:var(--muted);font-size:13px">Sin datos de clientes</div>' :
+        topClientes.map(([c,m]) => `
+          <div class="cliente-row">
+            <span class="cliente-name">${c}</span>
+            <span class="cliente-monto">${fmt(m)}</span>
+          </div>
+        `).join('')}
+    </div>
+
+    <div class="card">
+      <div class="card-title">📤 Exportar</div>
+      <button class="btn btn-export" onclick="exportarMes()">⬇️ Descargar Excel del mes</button>
+    </div>
+
+    <div class="card" style="border-color: rgba(245,166,35,0.3);">
+      <div class="card-title">🏦 Balance Total Histórico</div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Total Ingresos</div>
+          <div class="stat-value green" style="font-size:18px">${fmt(totalIH)}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total Gastos</div>
+          <div class="stat-value red" style="font-size:18px">${fmt(totalGH)}</div>
+        </div>
+      </div>
+      <div class="stat-card" style="margin-top:8px;background:rgba(245,166,35,0.06);border-color:rgba(245,166,35,0.2)">
+        <div class="stat-label">Balance Neto · ${mesesCount} meses registrados</div>
+        <div class="stat-value ${balanceH>=0?'green':'red'}" style="font-size:30px">${balanceH>=0?'+':''}${fmt(balanceH)}</div>
+      </div>
+    </div>
+  `;
+}
+
+// ==================== CLIENTES ====================
+function renderClientes() {
+  const todos = getTodos().filter(r => r.tipo === 'ingreso' && r.cliente);
+  const porCliente = {};
+  todos.forEach(r => {
+    const c = r.cliente;
+    if (!porCliente[c]) porCliente[c] = { total: 0, count: 0 };
+    porCliente[c].total += r.monto;
+    porCliente[c].count++;
+  });
+
+  const sorted = Object.entries(porCliente).sort((a,b)=>b[1].total-a[1].total);
+
+  document.getElementById('clientes-content').innerHTML = `
+    <div class="card">
+      <div class="card-title">👥 Ranking de Clientes</div>
+      ${sorted.map(([c, d], i) => `
+        <div class="cliente-row">
+          <div>
+            <span style="color:var(--accent);font-weight:700;margin-right:8px">#${i+1}</span>
+            <span class="cliente-name">${c}</span>
+            <div class="cliente-count">${d.count} servicio${d.count>1?'s':''}</div>
+          </div>
+          <span class="cliente-monto">${fmt(d.total)}</span>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+// ==================== HELPERS ====================
+function fmt(n) {
+  return '$' + Math.abs(n).toLocaleString('es-CL');
+}
+
+function formatMesLabel(ym) {
+  const [y,m] = ym.split('-');
+  const meses = ['','ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
+  return `${meses[parseInt(m)]} ${y}`;
+}
+
+function actualizarHeaderBalance() {
+  const todos = getTodos();
+  const mesActual = new Date().toISOString().substring(0,7);
+  const delMes = todos.filter(r => r.fecha.substring(0,7) === mesActual);
+  const totalI = delMes.filter(r=>r.tipo==='ingreso').reduce((s,r)=>s+r.monto,0);
+  const totalG = delMes.filter(r=>r.tipo==='gasto').reduce((s,r)=>s+r.monto,0);
+  const balance = totalI - totalG;
+  const el = document.getElementById('headerBalance');
+  el.textContent = fmt(balance);
+  el.style.color = balance >= 0 ? 'var(--success)' : 'var(--danger)';
+  document.getElementById('headerMesLabel').textContent = formatMesLabel(mesActual);
+  document.getElementById('headerSubLabel').textContent = `${fmt(totalI)} ingresos · ${fmt(totalG)} gastos`;
+}
+
+function renderFiltroMes() {
+  const todos = getTodos();
+  const meses = [...new Set(todos.map(r => r.fecha.substring(0,7)))].sort().reverse();
+  const sel = document.getElementById('filtroMes');
+  const val = sel.value;
+  sel.innerHTML = '<option value="">Todos los meses</option>' +
+    meses.map(m => `<option value="${m}" ${m===val?'selected':''}>${formatMesLabel(m)}</option>`).join('');
+}
+
+function actualizarDatalist() {
+  const todos = getTodos();
+  const clientes = [...new Set(todos.filter(r=>r.cliente).map(r=>r.cliente))];
+  document.getElementById('clientes-list').innerHTML =
+    clientes.map(c => `<option value="${c}">`).join('');
+}
+
+function showToast(msg, error=false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast' + (error?' error':'') + ' show';
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ==================== EXPORTAR ====================
+function exportarMes() {
+  if (!mesResumenActual) return;
+  const todos = getTodos().filter(r => r.fecha.substring(0,7) === mesResumenActual);
+  let csv = 'FECHA,TIPO,DETALLE,MONTO,HORA,PAGO,BOLETA,CLIENTE,CATEGORIA\n';
+  todos.forEach(r => {
+    csv += `${r.fecha},${r.tipo.toUpperCase()},"${r.detalle}",${r.monto},${r.hora||''},${r.pago||''},${r.boleta||''},${r.cliente||''},${r.categoria||''}\n`;
+  });
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `TransportesLucas_${mesResumenActual}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ==================== NAV ====================
+function showSection(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('sec-' + name).classList.add('active');
+  event.target.classList.add('active');
+
+  if (name === 'registros') renderRegistros();
+  if (name === 'resumen') renderMesChips();
+  if (name === 'clientes') renderClientes();
+}
+</script>
+</body>
+</html>
