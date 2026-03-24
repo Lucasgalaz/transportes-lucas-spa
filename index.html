@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -9,10 +10,10 @@
 <style>html, body { background-color: #0a0a0f !important; }</style>
 <title>Transportes Lucas SpA</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-  import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
-
+<!-- Firebase CDN compatible -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
   const firebaseConfig = {
     apiKey: "AIzaSyD1AtdfvcZJ3upNl7zceH-34wzmoz6vgVc",
     authDomain: "transportes-lucas-spa.firebaseapp.com",
@@ -22,21 +23,40 @@
     appId: "1:271016274814:web:4d305fffb87226d62b212f"
   };
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+  firebase.initializeApp(firebaseConfig);
+  const _db = firebase.firestore();
   const COL = 'registros';
-
-  // Exponer funciones al scope global
-  window._db = db;
-  window._col = COL;
-  window._firebase = { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy };
+  window._datosFirebase = [];
 
   // Escuchar cambios en tiempo real
-  const q = query(collection(db, COL), orderBy('fecha', 'asc'));
-  onSnapshot(q, (snapshot) => {
-    window._datosFirebase = snapshot.docs.map(d => ({ ...d.data(), _docId: d.id }));
+  _db.collection(COL).orderBy('fecha', 'asc').onSnapshot(function(snapshot) {
+    window._datosFirebase = snapshot.docs.map(function(d) {
+      return Object.assign({}, d.data(), { _docId: d.id });
+    });
     if (typeof window.onFirebaseUpdate === 'function') window.onFirebaseUpdate();
   });
+
+  // Funciones globales Firebase
+  window.guardarEnFirebase = async function(registro) {
+    try {
+      await _db.collection(COL).add(registro);
+      return true;
+    } catch(e) { console.error(e); return false; }
+  };
+
+  window.actualizarEnFirebase = async function(docId, datos) {
+    try {
+      await _db.collection(COL).doc(docId).update(datos);
+      return true;
+    } catch(e) { console.error(e); return false; }
+  };
+
+  window.eliminarDeFirebase = async function(docId) {
+    try {
+      await _db.collection(COL).doc(docId).delete();
+      return true;
+    } catch(e) { console.error(e); return false; }
+  };
 </script>
 <style>
   :root {
@@ -1122,44 +1142,8 @@ function guardarDatos(datos) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(datos));
 }
 
-async function guardarEnFirebase(registro) {
-  try {
-    const fb = window._firebase;
-    const db = window._db;
-    if (!fb || !db) return false;
-    await fb.addDoc(fb.collection(db, window._col), registro);
-    return true;
-  } catch(e) {
-    console.error('Error Firebase:', e);
-    return false;
-  }
-}
-
-async function actualizarEnFirebase(docId, datos) {
-  try {
-    const fb = window._firebase;
-    const db = window._db;
-    if (!fb || !db || !docId) return false;
-    await fb.updateDoc(fb.doc(db, window._col, docId), datos);
-    return true;
-  } catch(e) {
-    console.error('Error Firebase update:', e);
-    return false;
-  }
-}
-
-async function eliminarDeFirebase(docId) {
-  try {
-    const fb = window._firebase;
-    const db = window._db;
-    if (!fb || !db || !docId) return false;
-    await fb.deleteDoc(fb.doc(db, window._col, docId));
-    return true;
-  } catch(e) {
-    console.error('Error Firebase delete:', e);
-    return false;
-  }
-}
+// Funciones Firebase definidas en el bloque de inicialización arriba
+// guardarEnFirebase, actualizarEnFirebase, eliminarDeFirebase
 
 function getTodos() {
   const guardados = cargarDatos();
