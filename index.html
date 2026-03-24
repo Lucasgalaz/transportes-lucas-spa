@@ -10,54 +10,7 @@
 <style>html, body { background-color: #0a0a0f !important; }</style>
 <title>Transportes Lucas SpA</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<!-- Firebase CDN compatible -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyD1AtdfvcZJ3upNl7zceH-34wzmoz6vgVc",
-    authDomain: "transportes-lucas-spa.firebaseapp.com",
-    projectId: "transportes-lucas-spa",
-    storageBucket: "transportes-lucas-spa.firebasestorage.app",
-    messagingSenderId: "271016274814",
-    appId: "1:271016274814:web:4d305fffb87226d62b212f"
-  };
 
-  firebase.initializeApp(firebaseConfig);
-  const _db = firebase.firestore();
-  const COL = 'registros';
-  window._datosFirebase = [];
-
-  // Escuchar cambios en tiempo real
-  _db.collection(COL).orderBy('fecha', 'asc').onSnapshot(function(snapshot) {
-    window._datosFirebase = snapshot.docs.map(function(d) {
-      return Object.assign({}, d.data(), { _docId: d.id });
-    });
-    if (typeof window.onFirebaseUpdate === 'function') window.onFirebaseUpdate();
-  });
-
-  // Funciones globales Firebase
-  window.guardarEnFirebase = async function(registro) {
-    try {
-      await _db.collection(COL).add(registro);
-      return true;
-    } catch(e) { console.error(e); return false; }
-  };
-
-  window.actualizarEnFirebase = async function(docId, datos) {
-    try {
-      await _db.collection(COL).doc(docId).update(datos);
-      return true;
-    } catch(e) { console.error(e); return false; }
-  };
-
-  window.eliminarDeFirebase = async function(docId) {
-    try {
-      await _db.collection(COL).doc(docId).delete();
-      return true;
-    } catch(e) { console.error(e); return false; }
-  };
-</script>
 <style>
   :root {
     --bg: #0a0a0f;
@@ -685,6 +638,55 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- Firebase CDN compatible -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyD1AtdfvcZJ3upNl7zceH-34wzmoz6vgVc",
+    authDomain: "transportes-lucas-spa.firebaseapp.com",
+    projectId: "transportes-lucas-spa",
+    storageBucket: "transportes-lucas-spa.firebasestorage.app",
+    messagingSenderId: "271016274814",
+    appId: "1:271016274814:web:4d305fffb87226d62b212f"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const _db = firebase.firestore();
+  const COL = 'registros';
+  window._datosFirebase = [];
+
+  // Escuchar cambios en tiempo real
+  _db.collection(COL).orderBy('fecha', 'asc').onSnapshot(function(snapshot) {
+    window._datosFirebase = snapshot.docs.map(function(d) {
+      return Object.assign({}, d.data(), { _docId: d.id });
+    });
+    if (typeof window.onFirebaseUpdate === 'function') window.onFirebaseUpdate();
+  });
+
+  // Funciones globales Firebase
+  window.guardarEnFirebase = async function(registro) {
+    try {
+      await _db.collection(COL).add(registro);
+      return true;
+    } catch(e) { console.error(e); return false; }
+  };
+
+  window.actualizarEnFirebase = async function(docId, datos) {
+    try {
+      await _db.collection(COL).doc(docId).update(datos);
+      return true;
+    } catch(e) { console.error(e); return false; }
+  };
+
+  window.eliminarDeFirebase = async function(docId) {
+    try {
+      await _db.collection(COL).doc(docId).delete();
+      return true;
+    } catch(e) { console.error(e); return false; }
+  };
+</script>
+
 <script>
 // ==================== DATOS HISTÓRICOS ====================
 const HISTORICO = [
@@ -1178,22 +1180,29 @@ document.addEventListener('DOMContentLoaded', () => {
   actualizarDatalist();
 
   // Migrar datos de localStorage a Firebase si existen
-  setTimeout(async function() {
+  setTimeout(function() {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      var raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return;
-      const locales = JSON.parse(raw);
+      var locales = JSON.parse(raw);
       if (!locales || locales.length === 0) return;
-      if (!window._firebase || !window._db) return;
-      const fbDatos = window._datosFirebase || [];
-      const fbIds = new Set(fbDatos.map(r => r.id));
-      const nuevos = locales.filter(r => !fbIds.has(r.id));
-      if (nuevos.length === 0) return;
-      for (const r of nuevos) {
-        await guardarEnFirebase(r);
+      var fbDatos = window._datosFirebase || [];
+      var fbIds = new Set(fbDatos.map(function(r){ return r.id; }));
+      var nuevos = locales.filter(function(r){ return !fbIds.has(r.id); });
+      if (nuevos.length === 0) { localStorage.removeItem(STORAGE_KEY); return; }
+      var i = 0;
+      function migrarSiguiente() {
+        if (i >= nuevos.length) {
+          localStorage.removeItem(STORAGE_KEY);
+          showToast('✅ ' + nuevos.length + ' registros migrados a la nube!');
+          return;
+        }
+        guardarEnFirebase(nuevos[i]).then(function() {
+          i++;
+          migrarSiguiente();
+        });
       }
-      localStorage.removeItem(STORAGE_KEY);
-      showToast('✅ ' + nuevos.length + ' registros migrados a la nube!');
+      migrarSiguiente();
     } catch(e) {
       console.error('Error migrando:', e);
     }
