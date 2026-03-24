@@ -3,8 +3,41 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>html, body { background-color: #0a0a0f !important; }</style>
 <title>Transportes Lucas SpA</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+  import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyD1AtdfvcZJ3upNl7zceH-34wzmoz6vgVc",
+    authDomain: "transportes-lucas-spa.firebaseapp.com",
+    projectId: "transportes-lucas-spa",
+    storageBucket: "transportes-lucas-spa.firebasestorage.app",
+    messagingSenderId: "271016274814",
+    appId: "1:271016274814:web:4d305fffb87226d62b212f"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const COL = 'registros';
+
+  // Exponer funciones al scope global
+  window._db = db;
+  window._col = COL;
+  window._firebase = { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy };
+
+  // Escuchar cambios en tiempo real
+  const q = query(collection(db, COL), orderBy('fecha', 'asc'));
+  onSnapshot(q, (snapshot) => {
+    window._datosFirebase = snapshot.docs.map(d => ({ ...d.data(), _docId: d.id }));
+    if (typeof window.onFirebaseUpdate === 'function') window.onFirebaseUpdate();
+  });
+</script>
 <style>
   :root {
     --bg: #0a0a0f;
@@ -20,6 +53,7 @@
     --radius: 12px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { background: var(--bg); }
   body {
     background: var(--bg);
     color: var(--text);
@@ -344,6 +378,92 @@
   }
   .filter-row select { flex: 1; }
 
+
+  /* MODAL EDICIÓN */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 500;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    width: 100%;
+    max-width: 480px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 1px;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+  .modal-btns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .btn-cancel { background: var(--surface); border: 1px solid var(--border); color: var(--text); margin-top: 0; }
+  .btn-save { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; margin-top: 0; }
+
+  /* BOTONES EDITAR/ELIMINAR */
+  .reg-actions { display: flex; gap: 6px; }
+  .btn-edit { background: rgba(245,166,35,0.15); color: var(--accent); border: 1px solid rgba(245,166,35,0.3); width: auto; margin-top: 0; padding: 6px 10px; font-size: 12px; border-radius: 6px; cursor: pointer; font-family: 'DM Sans', sans-serif; font-weight: 600; }
+
+  /* GRÁFICOS */
+  .chart-wrap { position: relative; width: 100%; height: 200px; margin-bottom: 8px; }
+  .chart-bars { display: flex; align-items: flex-end; gap: 4px; height: 160px; padding: 0 4px; }
+  .chart-bar-group { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .chart-bar-pair { display: flex; gap: 2px; align-items: flex-end; width: 100%; }
+  .bar { border-radius: 4px 4px 0 0; min-height: 2px; flex: 1; transition: all 0.4s ease; cursor: pointer; position: relative; }
+  .bar-ing { background: linear-gradient(180deg, #2ecc71, #27ae60); }
+  .bar-gas { background: linear-gradient(180deg, #e74c3c, #c0392b); }
+  .bar-bal { border-radius: 4px; }
+  .chart-label { font-size: 8px; color: var(--muted); text-align: center; margin-top: 4px; white-space: nowrap; }
+  .chart-legend { display: flex; gap: 14px; justify-content: center; margin-top: 8px; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--muted); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+  .chart-tooltip {
+    position: absolute;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 11px;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 10;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    display: none;
+  }
+  .bar:hover .chart-tooltip { display: block; }
+
+
+  .btn-pagar { background: rgba(46,204,113,0.15); color: var(--success); border: 1px solid rgba(46,204,113,0.4); width: auto; margin-top: 0; padding: 6px 10px; font-size: 12px; border-radius: 6px; cursor: pointer; font-family: 'DM Sans', sans-serif; font-weight: 600; }
+  .badge-pendiente { background: rgba(231,76,60,0.2); color: #e74c3c; font-weight: 700; }
+  .chart-donut-wrap { display: flex; align-items: center; justify-content: center; gap: 24px; margin: 8px 0; }
+  .donut-svg { flex-shrink: 0; }
+  .donut-legend { display: flex; flex-direction: column; gap: 8px; }
+  .donut-item { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+  .donut-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+
+  .btn-backup { background: rgba(245,166,35,0.12); border: 1px solid rgba(245,166,35,0.3); color: var(--accent); margin-top: 0; }
+  .btn-import { background: rgba(100,150,255,0.12); border: 1px solid rgba(100,150,255,0.3); color: #7ab3ff; margin-top: 0; }
+  .import-area { border: 2px dashed var(--border); border-radius: 10px; padding: 20px; text-align: center; color: var(--muted); font-size: 13px; margin-top: 10px; cursor: pointer; transition: all 0.2s; }
+  .import-area:hover { border-color: #7ab3ff; color: #7ab3ff; }
+
   @media (max-width: 480px) {
     .form-grid { grid-template-columns: 1fr; }
     .stats-grid { grid-template-columns: 1fr 1fr; }
@@ -479,6 +599,69 @@
   </div>
 
 </main>
+
+
+<!-- MODAL EDICIÓN -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-title">✏️ Editar Registro</div>
+    <input type="hidden" id="edit-id">
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Fecha</label>
+        <input type="date" id="edit-fecha">
+      </div>
+      <div class="form-group">
+        <label>Monto ($)</label>
+        <input type="number" id="edit-monto">
+      </div>
+      <div class="form-group full">
+        <label>Detalle</label>
+        <input type="text" id="edit-detalle">
+      </div>
+      <div class="form-group" id="edit-g-cliente">
+        <label>Cliente</label>
+        <input type="text" id="edit-cliente" list="clientes-list">
+      </div>
+      <div class="form-group">
+        <label>Hora</label>
+        <input type="text" id="edit-hora" placeholder="Ej: 9AM-2PM">
+      </div>
+      <div class="form-group">
+        <label>Pago</label>
+        <select id="edit-pago">
+          <option value="LISTO">LISTO</option>
+          <option value="OK">OK</option>
+          <option value="PENDIENTE">PENDIENTE</option>
+        </select>
+      </div>
+      <div class="form-group" id="edit-g-boleta">
+        <label>Boleta / Factura</label>
+        <select id="edit-boleta">
+          <option value="">No</option>
+          <option value="SI">Boleta</option>
+          <option value="FACTURA">Factura</option>
+        </select>
+      </div>
+      <div class="form-group full" id="edit-g-categoria" style="display:none">
+        <label>Categoría</label>
+        <select id="edit-categoria">
+          <option value="Combustible">Combustible</option>
+          <option value="Mantención">Mantención</option>
+          <option value="Peaje">Peaje</option>
+          <option value="Peoneta">Peoneta</option>
+          <option value="Seguro">Seguro</option>
+          <option value="Repuestos">Repuestos</option>
+          <option value="Otro">Otro</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-cancel" onclick="cerrarModal()">✖ Cancelar</button>
+      <button class="btn btn-save" onclick="guardarEdicion()">💾 Guardar</button>
+    </div>
+  </div>
+</div>
 
 <div class="toast" id="toast"></div>
 
@@ -908,12 +1091,25 @@ const HISTORICO = [
   {id:'h238',tipo:'ingreso',fecha:'2026-03-07',detalle:'MONTAJE Y DESMONTAJE PALESTINO (30 A SEBA)',monto:120000,hora:'',pago:'',boleta:'',cliente:'MONTE OLIMPO'},
   {id:'h239',tipo:'ingreso',fecha:'2026-03-15',detalle:'DESMONTAJE CON PABLO AYUDA CENTROPARQUE',monto:20000,hora:'',pago:'',boleta:'',cliente:''},
   {id:'h240',tipo:'ingreso',fecha:'2026-03-15',detalle:'MONTAJE Y DESMONTAJE BOSQUE LUZ',monto:160000,hora:'',pago:'',boleta:'',cliente:''},
+
+  // REGISTROS MARZO 2026 - NUEVOS
+  {id:'h241',tipo:'ingreso',fecha:'2026-03-15',detalle:'RETIRO STAND CERESITA EN MAIPU',monto:50000,hora:'7PM',pago:'PENDIENTE',boleta:'',cliente:'CERESITA'},
+  {id:'h242',tipo:'ingreso',fecha:'2026-03-16',detalle:'DESPACHO COSAS CERESITA A QUILICURA Y HUECHURABA',monto:50000,hora:'',pago:'PENDIENTE',boleta:'',cliente:'CERESITA'},
+  {id:'g160',tipo:'gasto',fecha:'2026-03-16',detalle:'HOJAS FACTURA CERESITA',monto:2500,hora:'',pago:'',boleta:'FACTURA',cliente:'',categoria:'Otro'},
+  {id:'h243',tipo:'ingreso',fecha:'2026-03-17',detalle:'PEONETA ACOMPAÑAR A PABLO ANDES MOTOR DEJAR COSAS',monto:20000,hora:'',pago:'PENDIENTE',boleta:'',cliente:'ANDES MOTOR'},
+  {id:'h244',tipo:'ingreso',fecha:'2026-03-18',detalle:'DESPACHO A MARBELLA DISFRACES',monto:130000,hora:'',pago:'PENDIENTE',boleta:'',cliente:'MARBELLA DISFRACES'},
+  {id:'h245',tipo:'ingreso',fecha:'2026-03-19',detalle:'RETIRO DISFRACES MARBELLA',monto:130000,hora:'',pago:'PENDIENTE',boleta:'',cliente:'MARBELLA DISFRACES'},
+  {id:'h246',tipo:'ingreso',fecha:'2026-03-19',detalle:'MONTAJE Y DESMONTAJE TEATRO C CON SEBA',monto:140000,hora:'',pago:'PENDIENTE',boleta:'',cliente:'MONTE OLIMPO'},
 ];
 
-// ==================== STORAGE ====================
+// ==================== STORAGE (Firebase + localStorage fallback) ====================
 const STORAGE_KEY = 'transportes_lucas_spa_v1';
 
 function cargarDatos() {
+  // Usar datos de Firebase si están disponibles, sino localStorage
+  if (window._datosFirebase && window._datosFirebase.length > 0) {
+    return window._datosFirebase;
+  }
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
@@ -922,7 +1118,47 @@ function cargarDatos() {
 }
 
 function guardarDatos(datos) {
+  // Guardar en localStorage como respaldo
   localStorage.setItem(STORAGE_KEY, JSON.stringify(datos));
+}
+
+async function guardarEnFirebase(registro) {
+  try {
+    const fb = window._firebase;
+    const db = window._db;
+    if (!fb || !db) return false;
+    await fb.addDoc(fb.collection(db, window._col), registro);
+    return true;
+  } catch(e) {
+    console.error('Error Firebase:', e);
+    return false;
+  }
+}
+
+async function actualizarEnFirebase(docId, datos) {
+  try {
+    const fb = window._firebase;
+    const db = window._db;
+    if (!fb || !db || !docId) return false;
+    await fb.updateDoc(fb.doc(db, window._col, docId), datos);
+    return true;
+  } catch(e) {
+    console.error('Error Firebase update:', e);
+    return false;
+  }
+}
+
+async function eliminarDeFirebase(docId) {
+  try {
+    const fb = window._firebase;
+    const db = window._db;
+    if (!fb || !db || !docId) return false;
+    await fb.deleteDoc(fb.doc(db, window._col, docId));
+    return true;
+  } catch(e) {
+    console.error('Error Firebase delete:', e);
+    return false;
+  }
 }
 
 function getTodos() {
@@ -938,13 +1174,46 @@ let tipoActual = 'ingreso';
 let mesResumenActual = null;
 
 // ==================== INIT ====================
+// Callback cuando Firebase actualiza los datos
+window.onFirebaseUpdate = function() {
+  actualizarHeaderBalance();
+  renderFiltroMes();
+  renderMesChips();
+  actualizarDatalist();
+  // Si registros está visible, actualizarlo también
+  if (document.getElementById('sec-registros').classList.contains('active')) {
+    renderRegistros();
+  }
+};
+
 document.addEventListener('DOMContentLoaded', () => {
-  // Fecha de hoy por defecto
   document.getElementById('f-fecha').value = new Date().toISOString().split('T')[0];
   actualizarHeaderBalance();
   renderFiltroMes();
   renderMesChips();
   actualizarDatalist();
+
+  // Migrar datos de localStorage a Firebase si existen
+  setTimeout(async function() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const locales = JSON.parse(raw);
+      if (!locales || locales.length === 0) return;
+      if (!window._firebase || !window._db) return;
+      const fbDatos = window._datosFirebase || [];
+      const fbIds = new Set(fbDatos.map(r => r.id));
+      const nuevos = locales.filter(r => !fbIds.has(r.id));
+      if (nuevos.length === 0) return;
+      for (const r of nuevos) {
+        await guardarEnFirebase(r);
+      }
+      localStorage.removeItem(STORAGE_KEY);
+      showToast('✅ ' + nuevos.length + ' registros migrados a la nube!');
+    } catch(e) {
+      console.error('Error migrando:', e);
+    }
+  }, 3000);
 });
 
 // ==================== TIPO ====================
@@ -972,7 +1241,7 @@ function setTipo(tipo) {
 }
 
 // ==================== GUARDAR ====================
-function guardarRegistro() {
+async function guardarRegistro() {
   const fecha = document.getElementById('f-fecha').value;
   const monto = parseInt(document.getElementById('f-monto').value);
   const detalle = document.getElementById('f-detalle').value.trim().toUpperCase();
@@ -995,30 +1264,37 @@ function guardarRegistro() {
     categoria: tipoActual === 'gasto' ? categoria : ''
   };
 
-  const datos = cargarDatos();
-  datos.push(nuevo);
-  guardarDatos(datos);
+  showToast('⏳ Guardando...');
+  const ok = await guardarEnFirebase(nuevo);
 
-  // Limpiar form
-  document.getElementById('f-monto').value = '';
-  document.getElementById('f-detalle').value = '';
-  document.getElementById('f-cliente').value = '';
-  document.getElementById('f-hora').value = '';
-  document.getElementById('f-fecha').value = new Date().toISOString().split('T')[0];
-
-  actualizarHeaderBalance();
-  renderFiltroMes();
-  renderMesChips();
-  actualizarDatalist();
-  showToast('✅ Registro guardado!');
+  if (ok) {
+    // Limpiar form
+    document.getElementById('f-monto').value = '';
+    document.getElementById('f-detalle').value = '';
+    document.getElementById('f-cliente').value = '';
+    document.getElementById('f-hora').value = '';
+    document.getElementById('f-fecha').value = new Date().toISOString().split('T')[0];
+    showToast('✅ Guardado en la nube!');
+  } else {
+    // Fallback a localStorage
+    const datos = cargarDatos();
+    datos.push(nuevo);
+    guardarDatos(datos);
+    showToast('✅ Guardado localmente');
+  }
 }
 
 // ==================== ELIMINAR ====================
-function eliminarRegistro(id) {
+async function eliminarRegistro(id) {
   if (!confirm('¿Eliminar este registro?')) return;
-  // Solo se pueden eliminar registros guardados (no históricos)
-  const datos = cargarDatos().filter(r => r.id !== id);
-  guardarDatos(datos);
+  const todos = cargarDatos();
+  const reg = todos.find(r => r.id === id);
+  if (reg && reg._docId) {
+    await eliminarDeFirebase(reg._docId);
+  } else {
+    const datos = todos.filter(r => r.id !== id);
+    guardarDatos(datos);
+  }
   actualizarHeaderBalance();
   renderRegistros();
   renderFiltroMes();
@@ -1064,34 +1340,115 @@ function renderRegistros() {
     const totalGastos = regs.filter(r=>r.tipo==='gasto').reduce((s,r)=>s+r.monto,0);
     const balance = totalIngresos - totalGastos;
 
-    return `
-      <div class="mes-header">
-        <span>${formatMesLabel(mes)}</span>
-        <span class="mes-total-badge" style="color:${balance>=0?'#2ecc71':'#e74c3c'}">${balance>=0?'+':''}${fmt(balance)}</span>
-      </div>
-      ${regs.reverse().map(r => `
+    const filasHTML = [...regs].reverse().map(r => {
+      const esPendiente = r.tipo === 'ingreso' && (!r.pago || r.pago === 'PENDIENTE');
+      const esHistoricoAntiguo = (r.id.startsWith('h') || r.id.startsWith('g')) && r.fecha < '2026-02-01';
+      const esNuevo = !r.id.startsWith('h') && !r.id.startsWith('g');
+
+      let botonesHTML = '';
+      if (!esHistoricoAntiguo) {
+        botonesHTML += '<div class="reg-actions">';
+        botonesHTML += `<button class="btn-edit" onclick="abrirEdicion('${r.id}')">✏️</button>`;
+        if (esNuevo) botonesHTML += `<button class="btn btn-danger" onclick="eliminarRegistro('${r.id}')">🗑</button>`;
+        botonesHTML += '</div>';
+      }
+      if (esPendiente && esNuevo) {
+        botonesHTML += `<button class="btn-pagar" onclick="marcarPagado('${r.id}')">✅ Cobrado</button>`;
+      }
+
+      const boletaLabel = r.boleta && r.boleta !== '' && r.boleta !== 'NO'
+        ? `<span class="badge badge-boleta">📄 ${r.boleta === 'SI' ? 'BOLETA' : r.boleta}</span>` : '';
+      const clienteBadge = r.cliente ? `<span class="badge badge-cliente">${r.cliente}</span>` : '';
+      const catBadge = r.categoria ? `<span class="badge badge-cliente" style="background:rgba(231,76,60,0.12);color:#e74c3c">${r.categoria}</span>` : '';
+      const horaBadge = r.hora ? `<span class="badge badge-hora">${r.hora}</span>` : '';
+      const pagoBadge = r.pago ? `<span class="badge ${esPendiente ? 'badge-pendiente' : 'badge-pago'}">${r.pago || 'PENDIENTE'}</span>` : '';
+
+      return `
         <div class="registro-item">
           <div class="reg-left">
             <div class="reg-detalle">${r.detalle}</div>
             <div class="reg-meta">
-              ${r.fecha ? `<span class="badge badge-fecha">${r.fecha.split('-').reverse().join('/')}</span>` : ''}
-              ${r.cliente ? `<span class="badge badge-cliente">${r.cliente}</span>` : ''}
-              ${r.categoria ? `<span class="badge badge-cliente" style="background:rgba(231,76,60,0.12);color:#e74c3c">${r.categoria}</span>` : ''}
-              ${r.hora ? `<span class="badge badge-hora">${r.hora}</span>` : ''}
-              ${r.pago ? `<span class="badge badge-pago">${r.pago}</span>` : ''}
-              ${r.boleta && r.boleta !== '' && r.boleta !== 'NO' ? `<span class="badge badge-boleta">📄 ${r.boleta === 'SI' ? 'BOLETA' : r.boleta}</span>` : ''}
+              <span class="badge badge-fecha">${r.fecha.split('-').reverse().join('/')}</span>
+              ${clienteBadge}${catBadge}${horaBadge}${pagoBadge}${boletaLabel}
             </div>
           </div>
           <div class="reg-right">
             <span class="reg-monto ${r.tipo==='ingreso'?'monto-ingreso':'monto-gasto'}">
               ${r.tipo==='gasto'?'-':''}${fmt(r.monto)}
             </span>
-            ${!r.id.startsWith('h') ? `<button class="btn btn-danger" onclick="eliminarRegistro('${r.id}')">🗑</button>` : ''}
+            ${botonesHTML}
           </div>
-        </div>
-      `).join('')}
+        </div>`;
+    }).join('');
+
+    return `
+      <div class="mes-header">
+        <span>${formatMesLabel(mes)}</span>
+        <span class="mes-total-badge" style="color:${balance>=0?'#2ecc71':'#e74c3c'}">${balance>=0?'+':''}${fmt(balance)}</span>
+      </div>
+      ${filasHTML}
     `;
   }).join('');
+}
+
+
+// ==================== PENDIENTES ====================
+function renderPendientes(ingresos) {
+  var el = document.getElementById('card-pendientes');
+  if (!el) return;
+  var pendientes = ingresos.filter(function(r){ return !r.pago || r.pago === 'PENDIENTE'; });
+  if (pendientes.length === 0) {
+    el.innerHTML = '<div class="card-title">🟢 Cobros del Mes</div><div style="color:var(--success);font-size:14px;padding:8px 0">✅ Todo cobrado este mes</div>';
+    return;
+  }
+  var totalPend = pendientes.reduce(function(s,r){ return s+r.monto; }, 0);
+  var rows = pendientes.map(function(r) {
+    var esNuevo = !r.id.startsWith('h') && !r.id.startsWith('g');
+    var btnCobrar = esNuevo ? '<button class="btn-pagar" onclick="marcarPagado(\'' + r.id + '\')">✅ Cobrado</button>' : '';
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);gap:10px">'
+      + '<div style="flex:1">'
+      + '<div style="font-size:13px;font-weight:500">' + r.detalle + '</div>'
+      + '<div style="font-size:11px;color:var(--muted);margin-top:3px">' + r.fecha.split('-').reverse().join('/') + (r.cliente ? ' · ' + r.cliente : '') + '</div>'
+      + '</div>'
+      + '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">'
+      + '<span style="font-family:Bebas Neue,sans-serif;font-size:17px;color:#e74c3c">' + fmt(r.monto) + '</span>'
+      + btnCobrar
+      + '</div></div>';
+  }).join('');
+  el.innerHTML = '<div class="card-title">⏳ Pendientes por Cobrar</div>'
+    + '<div style="background:rgba(231,76,60,0.08);border:1px solid rgba(231,76,60,0.2);border-radius:8px;padding:10px 14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">'
+    + '<span style="font-size:12px;color:var(--muted)">Total pendiente</span>'
+    + '<span style="font-family:Bebas Neue,sans-serif;font-size:22px;color:#e74c3c">' + fmt(totalPend) + '</span>'
+    + '</div>' + rows;
+}
+
+// ==================== COBROS DONA ====================
+function renderCobros(ingresos) {
+  const cobrado = ingresos.filter(r => r.pago && r.pago !== 'PENDIENTE').reduce((s,r)=>s+r.monto,0);
+  const pendiente = ingresos.filter(r => !r.pago || r.pago === 'PENDIENTE').reduce((s,r)=>s+r.monto,0);
+  const total = cobrado + pendiente || 1;
+  const pctCobrado = Math.round((cobrado/total)*100);
+  const circ = 2 * Math.PI * 54;
+  const dashCob = (cobrado/total)*circ;
+  const dashPen = (pendiente/total)*circ;
+  const offsetPen = circ/4 - dashCob;
+
+  let svgCircles = '<circle cx="64" cy="64" r="54" fill="none" stroke="#2a2a3a" stroke-width="18"/>';
+  svgCircles += '<circle cx="64" cy="64" r="54" fill="none" stroke="#2ecc71" stroke-width="18" stroke-dasharray="'+dashCob+' '+circ+'" stroke-dashoffset="'+(circ/4)+'" stroke-linecap="round"/>';
+  if (pendiente > 0) {
+    svgCircles += '<circle cx="64" cy="64" r="54" fill="none" stroke="#e74c3c" stroke-width="18" stroke-dasharray="'+dashPen+' '+circ+'" stroke-dashoffset="'+offsetPen+'" stroke-linecap="round"/>';
+  }
+  svgCircles += '<text x="64" y="64" text-anchor="middle" dy="6" font-family="Bebas Neue,sans-serif" font-size="22" fill="#f0f0f5">'+pctCobrado+'%</text>';
+
+  const el = document.getElementById('card-cobros');
+  if (!el) return;
+  el.innerHTML = '<div class="card-title">💰 Estado de Cobros del Mes</div>'
+    + '<div class="chart-donut-wrap">'
+    + '<svg class="donut-svg" width="128" height="128" viewBox="0 0 128 128">' + svgCircles + '</svg>'
+    + '<div class="donut-legend">'
+    + '<div class="donut-item"><div class="donut-dot" style="background:#2ecc71"></div><div><div style="font-weight:600;color:#f0f0f5">Cobrado</div><div style="color:#2ecc71">'+fmt(cobrado)+'</div></div></div>'
+    + '<div class="donut-item"><div class="donut-dot" style="background:#e74c3c"></div><div><div style="font-weight:600;color:#f0f0f5">Pendiente</div><div style="color:#e74c3c">'+fmt(pendiente)+'</div></div></div>'
+    + '</div></div>';
 }
 
 // ==================== RESUMEN ====================
@@ -1130,7 +1487,6 @@ function renderResumen() {
   const totalG = gastos.reduce((s,r)=>s+r.monto,0);
   const balance = totalI - totalG;
 
-  // Por cliente
   const porCliente = {};
   ingresos.forEach(r => {
     const c = r.cliente || 'Sin cliente';
@@ -1139,32 +1495,84 @@ function renderResumen() {
   });
   const topClientes = Object.entries(porCliente).sort((a,b)=>b[1]-a[1]).slice(0,5);
 
-  // Balance total histórico
+  // Datos históricos para gráfico
   const todosH = getTodos();
+  const mesesAll = [...new Set(todosH.map(r=>r.fecha.substring(0,7)))].sort().slice(-12);
   const totalIH = todosH.filter(r=>r.tipo==='ingreso').reduce((s,r)=>s+r.monto,0);
   const totalGH = todosH.filter(r=>r.tipo==='gasto').reduce((s,r)=>s+r.monto,0);
   const balanceH = totalIH - totalGH;
   const mesesCount = [...new Set(todosH.map(r=>r.fecha.substring(0,7)))].length;
 
+  // Calcular datos por mes para gráfico
+  const datosMeses = mesesAll.map(m => {
+    const regs = todosH.filter(r=>r.fecha.substring(0,7)===m);
+    const ing = regs.filter(r=>r.tipo==='ingreso').reduce((s,r)=>s+r.monto,0);
+    const gas = regs.filter(r=>r.tipo==='gasto').reduce((s,r)=>s+r.monto,0);
+    return { mes: m, ing, gas, bal: ing - gas };
+  });
+  const maxVal = Math.max(...datosMeses.map(d => Math.max(d.ing, d.gas)), 1);
+
+  const barrasHTML = datosMeses.map(d => {
+    const hIng = Math.max((d.ing / maxVal) * 140, d.ing>0?3:0);
+    const hGas = Math.max((d.gas / maxVal) * 140, d.gas>0?3:0);
+    const label = formatMesLabel(d.mes).split(' ')[0];
+    return `
+      <div class="chart-bar-group">
+        <div class="chart-bar-pair">
+          <div class="bar bar-ing" style="height:${hIng}px">
+            <div class="chart-tooltip">${formatMesLabel(d.mes)}<br>Ing: ${fmt(d.ing)}</div>
+          </div>
+          <div class="bar bar-gas" style="height:${hGas}px">
+            <div class="chart-tooltip">${formatMesLabel(d.mes)}<br>Gas: ${fmt(d.gas)}</div>
+          </div>
+        </div>
+        <div class="chart-label">${label}</div>
+      </div>`;
+  }).join('');
+
+  // Gráfico de balance (línea con barras)
+  const balBarrasHTML = datosMeses.map(d => {
+    const maxBal = Math.max(...datosMeses.map(x=>Math.abs(x.bal)),1);
+    const h = Math.max((Math.abs(d.bal)/maxBal)*120, d.bal!==0?3:1);
+    const color = d.bal>=0 ? '#2ecc71' : '#e74c3c';
+    return `
+      <div class="chart-bar-group">
+        <div style="display:flex;justify-content:center;align-items:flex-end;height:130px;">
+          <div class="bar bar-bal" style="height:${h}px;background:${color};width:70%;position:relative;">
+            <div class="chart-tooltip">${formatMesLabel(d.mes)}<br>Bal: ${d.bal>=0?'+':''}${fmt(d.bal)}</div>
+          </div>
+        </div>
+        <div class="chart-label">${formatMesLabel(d.mes).split(' ')[0]}</div>
+      </div>`;
+  }).join('');
+
   document.getElementById('resumen-content').innerHTML = `
     <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-label">Ingresos</div>
-        <div class="stat-value green">${fmt(totalI)}</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Gastos</div>
-        <div class="stat-value red">${fmt(totalG)}</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Balance</div>
-        <div class="stat-value ${balance>=0?'green':'red'}">${fmt(balance)}</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Servicios</div>
-        <div class="stat-value white">${ingresos.length}</div>
+      <div class="stat-card"><div class="stat-label">Ingresos</div><div class="stat-value green">${fmt(totalI)}</div></div>
+      <div class="stat-card"><div class="stat-label">Gastos</div><div class="stat-value red">${fmt(totalG)}</div></div>
+      <div class="stat-card"><div class="stat-label">Balance</div><div class="stat-value ${balance>=0?'green':'red'}">${fmt(balance)}</div></div>
+      <div class="stat-card"><div class="stat-label">Servicios</div><div class="stat-value white">${ingresos.length}</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📊 Ingresos vs Gastos · Últimos ${datosMeses.length} meses</div>
+      <div class="chart-bars">${barrasHTML}</div>
+      <div class="chart-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#2ecc71"></div>Ingresos</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#e74c3c"></div>Gastos</div>
       </div>
     </div>
+
+    <div class="card">
+      <div class="card-title">📈 Balance Mensual</div>
+      <div class="chart-bars">${balBarrasHTML}</div>
+      <div class="chart-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#2ecc71"></div>Positivo</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#e74c3c"></div>Negativo</div>
+      </div>
+    </div>
+
+    <div class="card" id="card-cobros"></div>
 
     <div class="card">
       <div class="card-title">🏆 Top Clientes del Mes</div>
@@ -1173,26 +1581,31 @@ function renderResumen() {
           <div class="cliente-row">
             <span class="cliente-name">${c}</span>
             <span class="cliente-monto">${fmt(m)}</span>
-          </div>
-        `).join('')}
+          </div>`).join('')}
     </div>
+
+    <div class="card" id="card-pendientes"></div>
 
     <div class="card">
       <div class="card-title">📤 Exportar</div>
-      <button class="btn btn-export" onclick="exportarMes()">⬇️ Descargar Excel del mes</button>
+      <button class="btn btn-export" onclick="exportarMes()" style="margin-top:0;margin-bottom:8px">⬇️ Descargar Excel del mes</button>
+      <button class="btn btn-backup" onclick="exportarRespaldo()">💾 Exportar respaldo completo</button>
     </div>
 
-    <div class="card" style="border-color: rgba(245,166,35,0.3);">
+    <div class="card">
+      <div class="card-title">📥 Importar Respaldo</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Carga un respaldo guardado anteriormente para recuperar tus datos sin perder nada.</div>
+      <div class="import-area" onclick="document.getElementById('input-import').click()">
+        📂 Toca aquí para seleccionar tu archivo de respaldo (.json)
+      </div>
+      <input type="file" id="input-import" accept=".json" style="display:none" onchange="importarRespaldo(event)">
+    </div>
+
+    <div class="card" style="border-color:rgba(245,166,35,0.3);">
       <div class="card-title">🏦 Balance Total Histórico</div>
       <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-label">Total Ingresos</div>
-          <div class="stat-value green" style="font-size:18px">${fmt(totalIH)}</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Total Gastos</div>
-          <div class="stat-value red" style="font-size:18px">${fmt(totalGH)}</div>
-        </div>
+        <div class="stat-card"><div class="stat-label">Total Ingresos</div><div class="stat-value green" style="font-size:18px">${fmt(totalIH)}</div></div>
+        <div class="stat-card"><div class="stat-label">Total Gastos</div><div class="stat-value red" style="font-size:18px">${fmt(totalGH)}</div></div>
       </div>
       <div class="stat-card" style="margin-top:8px;background:rgba(245,166,35,0.06);border-color:rgba(245,166,35,0.2)">
         <div class="stat-label">Balance Neto · ${mesesCount} meses registrados</div>
@@ -1295,6 +1708,152 @@ function exportarMes() {
   a.download = `TransportesLucas_${mesResumenActual}.csv`;
   a.click();
   URL.revokeObjectURL(url);
+}
+
+
+// ==================== MARCAR PAGADO ====================
+async function marcarPagado(id) {
+  const todos = cargarDatos();
+  const reg = todos.find(r => r.id === id);
+  if (!reg) return;
+  if (reg._docId) {
+    await actualizarEnFirebase(reg._docId, { pago: 'LISTO' });
+  } else {
+    const datos = todos.map(r => r.id === id ? { ...r, pago: 'LISTO' } : r);
+    guardarDatos(datos);
+  }
+  actualizarHeaderBalance();
+  renderRegistros();
+  renderMesChips();
+  showToast('✅ Marcado como cobrado!');
+}
+
+// ==================== EDICIÓN ====================
+function abrirEdicion(id) {
+  const todos = getTodos();
+  const r = todos.find(x => x.id === id);
+  if (!r) return;
+
+  document.getElementById('edit-id').value = r.id;
+  document.getElementById('edit-fecha').value = r.fecha;
+  document.getElementById('edit-monto').value = r.monto;
+  document.getElementById('edit-detalle').value = r.detalle;
+  document.getElementById('edit-cliente').value = r.cliente || '';
+  document.getElementById('edit-hora').value = r.hora || '';
+  document.getElementById('edit-pago').value = r.pago || 'LISTO';
+  document.getElementById('edit-boleta').value = r.boleta || '';
+  document.getElementById('edit-categoria').value = r.categoria || 'Otro';
+
+  // Mostrar/ocultar campos según tipo
+  const esIngreso = r.tipo === 'ingreso';
+  document.getElementById('edit-g-cliente').style.display = esIngreso ? '' : 'none';
+  document.getElementById('edit-g-boleta').style.display = esIngreso ? '' : 'none';
+  document.getElementById('edit-g-categoria').style.display = esIngreso ? 'none' : '';
+
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+function cerrarModal() {
+  document.getElementById('modalOverlay').classList.remove('show');
+}
+
+function guardarEdicion() {
+  const id = document.getElementById('edit-id').value;
+  const fecha = document.getElementById('edit-fecha').value;
+  const monto = parseInt(document.getElementById('edit-monto').value);
+  const detalle = document.getElementById('edit-detalle').value.trim().toUpperCase();
+
+  if (!fecha || !monto || !detalle) { showToast('Completa fecha, monto y detalle', true); return; }
+
+  const todos = cargarDatos();
+  const reg = todos.find(r => r.id === id);
+  if (!reg) { showToast('Registro no encontrado', true); return; }
+
+  const actualizado = {
+    ...reg,
+    fecha, monto, detalle,
+    hora: document.getElementById('edit-hora').value.trim(),
+    pago: document.getElementById('edit-pago').value,
+    boleta: reg.tipo === 'ingreso' ? document.getElementById('edit-boleta').value : '',
+    cliente: reg.tipo === 'ingreso' ? document.getElementById('edit-cliente').value.trim().toUpperCase() : '',
+    categoria: reg.tipo === 'gasto' ? document.getElementById('edit-categoria').value : '',
+  };
+
+  if (reg._docId) {
+    const { _docId, ...sinDocId } = actualizado;
+    await actualizarEnFirebase(reg._docId, sinDocId);
+  } else {
+    const datos = todos.map(r => r.id === id ? actualizado : r);
+    guardarDatos(datos);
+  }
+
+  cerrarModal();
+  actualizarHeaderBalance();
+  renderRegistros();
+  renderFiltroMes();
+  actualizarDatalist();
+  showToast('✅ Registro actualizado!');
+}
+
+// Cerrar modal al tocar fuera
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('modalOverlay').addEventListener('click', function(e) {
+    if (e.target === this) cerrarModal();
+  });
+});
+
+// ==================== RESPALDO ====================
+function exportarRespaldo() {
+  var datos = cargarDatos();
+  if (datos.length === 0) {
+    showToast('No hay datos nuevos para exportar', true);
+    return;
+  }
+  var respaldo = {
+    version: '1.0',
+    fecha: new Date().toISOString().split('T')[0],
+    total: datos.length,
+    datos: datos
+  };
+  var json = JSON.stringify(respaldo, null, 2);
+  var blob = new Blob([json], {type: 'application/json'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'respaldo_transportes_lucas_' + new Date().toISOString().split('T')[0] + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('✅ Respaldo exportado!');
+}
+
+function importarRespaldo(event) {
+  var file = event.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      var respaldo = JSON.parse(e.target.result);
+      if (!respaldo.datos || !Array.isArray(respaldo.datos)) {
+        showToast('Archivo inválido', true);
+        return;
+      }
+      var datosActuales = cargarDatos();
+      var idsActuales = new Set(datosActuales.map(function(r){ return r.id; }));
+      var nuevos = respaldo.datos.filter(function(r){ return !idsActuales.has(r.id); });
+      var merged = datosActuales.concat(nuevos);
+      guardarDatos(merged);
+      actualizarHeaderBalance();
+      renderFiltroMes();
+      renderMesChips();
+      actualizarDatalist();
+      showToast('✅ ' + nuevos.length + ' registros importados!');
+      // Resetear input para poder volver a importar
+      event.target.value = '';
+    } catch(err) {
+      showToast('Error al leer el archivo', true);
+    }
+  };
+  reader.readAsText(file);
 }
 
 // ==================== NAV ====================
