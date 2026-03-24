@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -1278,7 +1277,7 @@ async function guardarRegistro() {
 }
 
 // ==================== ELIMINAR ====================
-async function eliminarRegistro(id) {
+async async function eliminarRegistro(id) {
   if (!confirm('¿Eliminar este registro?')) return;
   const todos = cargarDatos();
   const reg = todos.find(r => r.id === id);
@@ -1705,7 +1704,7 @@ function exportarMes() {
 
 
 // ==================== MARCAR PAGADO ====================
-async function marcarPagado(id) {
+async async function marcarPagado(id) {
   const todos = cargarDatos();
   const reg = todos.find(r => r.id === id);
   if (!reg) return;
@@ -1750,7 +1749,7 @@ function cerrarModal() {
   document.getElementById('modalOverlay').classList.remove('show');
 }
 
-function guardarEdicion() {
+async function guardarEdicion() {
   const id = document.getElementById('edit-id').value;
   const fecha = document.getElementById('edit-fecha').value;
   const monto = parseInt(document.getElementById('edit-monto').value);
