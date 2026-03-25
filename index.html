@@ -637,55 +637,6 @@
 
 <div class="toast" id="toast"></div>
 
-<!-- Firebase CDN compatible -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyD1AtdfvcZJ3upNl7zceH-34wzmoz6vgVc",
-    authDomain: "transportes-lucas-spa.firebaseapp.com",
-    projectId: "transportes-lucas-spa",
-    storageBucket: "transportes-lucas-spa.firebasestorage.app",
-    messagingSenderId: "271016274814",
-    appId: "1:271016274814:web:4d305fffb87226d62b212f"
-  };
-
-  firebase.initializeApp(firebaseConfig);
-  const _db = firebase.firestore();
-  const COL = 'registros';
-  window._datosFirebase = [];
-
-  // Escuchar cambios en tiempo real
-  _db.collection(COL).orderBy('fecha', 'asc').onSnapshot(function(snapshot) {
-    window._datosFirebase = snapshot.docs.map(function(d) {
-      return Object.assign({}, d.data(), { _docId: d.id });
-    });
-    if (typeof window.onFirebaseUpdate === 'function') window.onFirebaseUpdate();
-  });
-
-  // Funciones globales Firebase
-  window.guardarEnFirebase = async function(registro) {
-    try {
-      await _db.collection(COL).add(registro);
-      return true;
-    } catch(e) { console.error(e); return false; }
-  };
-
-  window.actualizarEnFirebase = async function(docId, datos) {
-    try {
-      await _db.collection(COL).doc(docId).update(datos);
-      return true;
-    } catch(e) { console.error(e); return false; }
-  };
-
-  window.eliminarDeFirebase = async function(docId) {
-    try {
-      await _db.collection(COL).doc(docId).delete();
-      return true;
-    } catch(e) { console.error(e); return false; }
-  };
-</script>
-
 <script>
 // ==================== DATOS HISTÓRICOS ====================
 const HISTORICO = [
@@ -1123,14 +1074,10 @@ const HISTORICO = [
   {id:'h246',tipo:'ingreso',fecha:'2026-03-19',detalle:'MONTAJE Y DESMONTAJE TEATRO C CON SEBA',monto:140000,hora:'',pago:'PENDIENTE',boleta:'',cliente:'MONTE OLIMPO'},
 ];
 
-// ==================== STORAGE (Firebase + localStorage fallback) ====================
+// ==================== STORAGE ====================
 const STORAGE_KEY = 'transportes_lucas_spa_v1';
 
 function cargarDatos() {
-  // Usar datos de Firebase si están disponibles, sino localStorage
-  if (window._datosFirebase && window._datosFirebase.length > 0) {
-    return window._datosFirebase;
-  }
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
@@ -1139,12 +1086,8 @@ function cargarDatos() {
 }
 
 function guardarDatos(datos) {
-  // Guardar en localStorage como respaldo
   localStorage.setItem(STORAGE_KEY, JSON.stringify(datos));
 }
-
-// Funciones Firebase definidas en el bloque de inicialización arriba
-// guardarEnFirebase, actualizarEnFirebase, eliminarDeFirebase
 
 function getTodos() {
   const guardados = cargarDatos();
@@ -1159,53 +1102,12 @@ let tipoActual = 'ingreso';
 let mesResumenActual = null;
 
 // ==================== INIT ====================
-// Callback cuando Firebase actualiza los datos
-window.onFirebaseUpdate = function() {
-  actualizarHeaderBalance();
-  renderFiltroMes();
-  renderMesChips();
-  actualizarDatalist();
-  // Si registros está visible, actualizarlo también
-  if (document.getElementById('sec-registros').classList.contains('active')) {
-    renderRegistros();
-  }
-};
-
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('f-fecha').value = new Date().toISOString().split('T')[0];
   actualizarHeaderBalance();
   renderFiltroMes();
   renderMesChips();
   actualizarDatalist();
-
-  // Migrar datos de localStorage a Firebase si existen
-  setTimeout(function() {
-    try {
-      var raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return;
-      var locales = JSON.parse(raw);
-      if (!locales || locales.length === 0) return;
-      var fbDatos = window._datosFirebase || [];
-      var fbIds = new Set(fbDatos.map(function(r){ return r.id; }));
-      var nuevos = locales.filter(function(r){ return !fbIds.has(r.id); });
-      if (nuevos.length === 0) { localStorage.removeItem(STORAGE_KEY); return; }
-      var i = 0;
-      function migrarSiguiente() {
-        if (i >= nuevos.length) {
-          localStorage.removeItem(STORAGE_KEY);
-          showToast('✅ ' + nuevos.length + ' registros migrados a la nube!');
-          return;
-        }
-        guardarEnFirebase(nuevos[i]).then(function() {
-          i++;
-          migrarSiguiente();
-        });
-      }
-      migrarSiguiente();
-    } catch(e) {
-      console.error('Error migrando:', e);
-    }
-  }, 3000);
 });
 
 // ==================== TIPO ====================
@@ -1233,7 +1135,7 @@ function setTipo(tipo) {
 }
 
 // ==================== GUARDAR ====================
-async function guardarRegistro() {
+function guardarRegistro() {
   const fecha = document.getElementById('f-fecha').value;
   const monto = parseInt(document.getElementById('f-monto').value);
   const detalle = document.getElementById('f-detalle').value.trim().toUpperCase();
@@ -1256,37 +1158,28 @@ async function guardarRegistro() {
     categoria: tipoActual === 'gasto' ? categoria : ''
   };
 
-  showToast('⏳ Guardando...');
-  const ok = await guardarEnFirebase(nuevo);
+  const datos = cargarDatos();
+  datos.push(nuevo);
+  guardarDatos(datos);
 
-  if (ok) {
-    // Limpiar form
-    document.getElementById('f-monto').value = '';
-    document.getElementById('f-detalle').value = '';
-    document.getElementById('f-cliente').value = '';
-    document.getElementById('f-hora').value = '';
-    document.getElementById('f-fecha').value = new Date().toISOString().split('T')[0];
-    showToast('✅ Guardado en la nube!');
-  } else {
-    // Fallback a localStorage
-    const datos = cargarDatos();
-    datos.push(nuevo);
-    guardarDatos(datos);
-    showToast('✅ Guardado localmente');
-  }
+  document.getElementById('f-monto').value = '';
+  document.getElementById('f-detalle').value = '';
+  document.getElementById('f-cliente').value = '';
+  document.getElementById('f-hora').value = '';
+  document.getElementById('f-fecha').value = new Date().toISOString().split('T')[0];
+
+  actualizarHeaderBalance();
+  renderFiltroMes();
+  renderMesChips();
+  actualizarDatalist();
+  showToast('✅ Registro guardado!');
 }
 
 // ==================== ELIMINAR ====================
-async async function eliminarRegistro(id) {
+function eliminarRegistro(id) {
   if (!confirm('¿Eliminar este registro?')) return;
-  const todos = cargarDatos();
-  const reg = todos.find(r => r.id === id);
-  if (reg && reg._docId) {
-    await eliminarDeFirebase(reg._docId);
-  } else {
-    const datos = todos.filter(r => r.id !== id);
-    guardarDatos(datos);
-  }
+  const datos = cargarDatos().filter(r => r.id !== id);
+  guardarDatos(datos);
   actualizarHeaderBalance();
   renderRegistros();
   renderFiltroMes();
@@ -1704,16 +1597,12 @@ function exportarMes() {
 
 
 // ==================== MARCAR PAGADO ====================
-async async function marcarPagado(id) {
-  const todos = cargarDatos();
-  const reg = todos.find(r => r.id === id);
-  if (!reg) return;
-  if (reg._docId) {
-    await actualizarEnFirebase(reg._docId, { pago: 'LISTO' });
-  } else {
-    const datos = todos.map(r => r.id === id ? { ...r, pago: 'LISTO' } : r);
-    guardarDatos(datos);
-  }
+function marcarPagado(id) {
+  const datos = cargarDatos();
+  const idx = datos.findIndex(r => r.id === id);
+  if (idx === -1) return;
+  datos[idx].pago = 'LISTO';
+  guardarDatos(datos);
   actualizarHeaderBalance();
   renderRegistros();
   renderMesChips();
@@ -1749,7 +1638,7 @@ function cerrarModal() {
   document.getElementById('modalOverlay').classList.remove('show');
 }
 
-async function guardarEdicion() {
+function guardarEdicion() {
   const id = document.getElementById('edit-id').value;
   const fecha = document.getElementById('edit-fecha').value;
   const monto = parseInt(document.getElementById('edit-monto').value);
@@ -1757,28 +1646,21 @@ async function guardarEdicion() {
 
   if (!fecha || !monto || !detalle) { showToast('Completa fecha, monto y detalle', true); return; }
 
-  const todos = cargarDatos();
-  const reg = todos.find(r => r.id === id);
-  if (!reg) { showToast('Registro no encontrado', true); return; }
+  const datos = cargarDatos();
+  const idx = datos.findIndex(r => r.id === id);
+  if (idx === -1) { showToast('Registro no encontrado', true); return; }
 
-  const actualizado = {
-    ...reg,
+  datos[idx] = {
+    ...datos[idx],
     fecha, monto, detalle,
     hora: document.getElementById('edit-hora').value.trim(),
     pago: document.getElementById('edit-pago').value,
-    boleta: reg.tipo === 'ingreso' ? document.getElementById('edit-boleta').value : '',
-    cliente: reg.tipo === 'ingreso' ? document.getElementById('edit-cliente').value.trim().toUpperCase() : '',
-    categoria: reg.tipo === 'gasto' ? document.getElementById('edit-categoria').value : '',
+    boleta: datos[idx].tipo === 'ingreso' ? document.getElementById('edit-boleta').value : '',
+    cliente: datos[idx].tipo === 'ingreso' ? document.getElementById('edit-cliente').value.trim().toUpperCase() : '',
+    categoria: datos[idx].tipo === 'gasto' ? document.getElementById('edit-categoria').value : '',
   };
 
-  if (reg._docId) {
-    const { _docId, ...sinDocId } = actualizado;
-    await actualizarEnFirebase(reg._docId, sinDocId);
-  } else {
-    const datos = todos.map(r => r.id === id ? actualizado : r);
-    guardarDatos(datos);
-  }
-
+  guardarDatos(datos);
   cerrarModal();
   actualizarHeaderBalance();
   renderRegistros();
