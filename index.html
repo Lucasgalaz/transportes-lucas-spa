@@ -586,6 +586,7 @@
   <button onclick="showSection('registros')">📋 Registros</button>
   <button onclick="showSection('resumen')">📊 Resumen</button>
   <button onclick="showSection('clientes')">👥 Clientes</button>
+  <button onclick="showSection('flujo')">💵 Flujo</button>
 </nav>
 
 <main>
@@ -684,6 +685,11 @@
   <!-- CLIENTES -->
   <div class="section" id="sec-clientes">
     <div id="clientes-content"></div>
+  </div>
+
+  <!-- FLUJO DE CAJA -->
+  <div class="section" id="sec-flujo">
+    <div id="flujo-content"></div>
   </div>
 
 </main>
@@ -1531,19 +1537,20 @@ function renderResumen() {
       </div>`;
   }).join('');
 
-  // Gráfico de balance (línea con barras)
+  // Gráfico de balance mensual
+  const maxBal = Math.max(...datosMeses.map(x=>Math.abs(x.bal)), 1);
   const balBarrasHTML = datosMeses.map(d => {
-    const maxBal = Math.max(...datosMeses.map(x=>Math.abs(x.bal)),1);
-    const h = Math.max((Math.abs(d.bal)/maxBal)*120, d.bal!==0?3:1);
+    const h = Math.max((Math.abs(d.bal)/maxBal)*130, d.bal!==0?3:1);
     const color = d.bal>=0 ? '#2ecc71' : '#e74c3c';
+    const label = formatMesLabel(d.mes).split(' ')[0];
     return `
       <div class="chart-bar-group">
-        <div style="display:flex;justify-content:center;align-items:flex-end;height:130px;">
+        <div style="display:flex;justify-content:center;align-items:flex-end;height:140px;">
           <div class="bar bar-bal" style="height:${h}px;background:${color};width:70%;position:relative;">
-            <div class="chart-tooltip">${formatMesLabel(d.mes)}<br>Bal: ${d.bal>=0?'+':''}${fmt(d.bal)}</div>
+            <div class="chart-tooltip">${formatMesLabel(d.mes)}<br>Balance: ${d.bal>=0?'+':'−'}${fmt(Math.abs(d.bal))}<br>Ing: ${fmt(d.ing)}<br>Gas: ${fmt(d.gas)}</div>
           </div>
         </div>
-        <div class="chart-label">${formatMesLabel(d.mes).split(' ')[0]}</div>
+        <div class="chart-label">${label}</div>
       </div>`;
   }).join('');
 
@@ -1551,7 +1558,7 @@ function renderResumen() {
     <div class="stats-grid">
       <div class="stat-card"><div class="stat-label">Ingresos</div><div class="stat-value green">${fmt(totalI)}</div></div>
       <div class="stat-card"><div class="stat-label">Gastos</div><div class="stat-value red">${fmt(totalG)}</div></div>
-      <div class="stat-card"><div class="stat-label">Balance</div><div class="stat-value ${balance>=0?'green':'red'}">${fmt(balance)}</div></div>
+      <div class="stat-card"><div class="stat-label">Balance</div><div class="stat-value ${balance>=0?'green':'red'}">${balance>=0?'':'-'}${fmt(Math.abs(balance))}</div></div>
       <div class="stat-card"><div class="stat-label">Servicios</div><div class="stat-value white">${ingresos.length}</div></div>
     </div>
 
@@ -1575,6 +1582,8 @@ function renderResumen() {
 
     <div class="card" id="card-cobros"></div>
 
+    <div class="card" id="card-pendientes"></div>
+
     <div class="card">
       <div class="card-title">🏆 Top Clientes del Mes</div>
       ${topClientes.length === 0 ? '<div style="color:var(--muted);font-size:13px">Sin datos de clientes</div>' :
@@ -1585,7 +1594,6 @@ function renderResumen() {
           </div>`).join('')}
     </div>
 
-    <div class="card" id="card-pendientes"></div>
 
     <div class="card">
       <div class="card-title">📤 Exportar</div>
@@ -1604,6 +1612,8 @@ function renderResumen() {
       <input type="file" id="input-import" accept=".json" style="display:none" onchange="importarRespaldo(event)">
     </div>
 
+    <div class="card" id="card-flujo-mes" style="border-color:rgba(100,150,255,0.3);"></div>
+
     <div class="card" style="border-color:rgba(245,166,35,0.3);">
       <div class="card-title">🏦 Balance Total Histórico</div>
       <div class="stats-grid">
@@ -1616,6 +1626,11 @@ function renderResumen() {
       </div>
     </div>
   `;
+
+  // Poblar cards dinámicas
+  renderCobros(ingresos);
+  renderPendientes(ingresos);
+  renderFlujoMes(ingresos, gastos, mesResumenActual);
 }
 
 // ==================== CLIENTES ====================
@@ -1756,7 +1771,7 @@ function cerrarModal() {
   document.getElementById('modalOverlay').classList.remove('show');
 }
 
-function guardarEdicion() {
+async function guardarEdicion() {
   const id = document.getElementById('edit-id').value;
   const fecha = document.getElementById('edit-fecha').value;
   const monto = parseInt(document.getElementById('edit-monto').value);
@@ -1764,21 +1779,43 @@ function guardarEdicion() {
 
   if (!fecha || !monto || !detalle) { showToast('Completa fecha, monto y detalle', true); return; }
 
-  const datos = cargarDatos();
-  const idx = datos.findIndex(r => r.id === id);
-  if (idx === -1) { showToast('Registro no encontrado', true); return; }
+  // Buscar en TODOS los registros (incluye históricos)
+  const todos = getTodos();
+  const reg = todos.find(r => r.id === id);
+  if (!reg) { showToast('Registro no encontrado', true); return; }
 
-  datos[idx] = {
-    ...datos[idx],
+  const { _docId, ...regBase } = reg;
+  const actualizado = {
+    ...regBase,
     fecha, monto, detalle,
     hora: document.getElementById('edit-hora').value.trim(),
     pago: document.getElementById('edit-pago').value,
-    boleta: datos[idx].tipo === 'ingreso' ? document.getElementById('edit-boleta').value : '',
-    cliente: datos[idx].tipo === 'ingreso' ? document.getElementById('edit-cliente').value.trim().toUpperCase() : '',
-    categoria: datos[idx].tipo === 'gasto' ? document.getElementById('edit-categoria').value : '',
+    boleta: reg.tipo === 'ingreso' ? document.getElementById('edit-boleta').value : '',
+    cliente: reg.tipo === 'ingreso' ? document.getElementById('edit-cliente').value.trim().toUpperCase() : '',
+    categoria: reg.tipo === 'gasto' ? document.getElementById('edit-categoria').value : '',
   };
 
-  guardarDatos(datos);
+  if (_docId) {
+    // Registro ya en Firebase — actualizar
+    await actualizarEnFirebase(_docId, actualizado);
+  } else {
+    // Registro histórico o de localStorage — guardar versión editada en Firebase
+    const guardados = cargarDatos();
+    const enLocal = guardados.find(r => r.id === id);
+    if (enLocal) {
+      // Está en localStorage, actualizar ahí
+      guardarDatos(guardados.map(r => r.id === id ? actualizado : r));
+    } else {
+      // Es histórico — subir a Firebase (reemplazará al histórico via getTodos)
+      const ok = await guardarEnFirebase(actualizado);
+      if (!ok) {
+        const datos = cargarDatos();
+        datos.push(actualizado);
+        guardarDatos(datos);
+      }
+    }
+  }
+
   cerrarModal();
   actualizarHeaderBalance();
   renderRegistros();
@@ -1786,7 +1823,6 @@ function guardarEdicion() {
   actualizarDatalist();
   showToast('✅ Registro actualizado!');
 }
-
 // Cerrar modal al tocar fuera
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('modalOverlay').addEventListener('click', function(e) {
@@ -1846,6 +1882,135 @@ function importarRespaldo(event) {
     }
   };
   reader.readAsText(file);
+}
+
+// ==================== FLUJO MES (en resumen) ====================
+function renderFlujoMes(ingresos, gastos, mes) {
+  const el = document.getElementById('card-flujo-mes');
+  if (!el) return;
+  const cobrado = ingresos.filter(r => r.pago && r.pago !== 'PENDIENTE').reduce((s,r)=>s+r.monto,0);
+  const pendiente = ingresos.filter(r => !r.pago || r.pago === 'PENDIENTE').reduce((s,r)=>s+r.monto,0);
+  const totalGastos = gastos.reduce((s,r)=>s+r.monto,0);
+  const flujoCaja = cobrado - totalGastos;
+  const flujoPotencial = cobrado + pendiente - totalGastos;
+  el.innerHTML = `
+    <div class="card-title">💵 Flujo de Caja · ${formatMesLabel(mes)}</div>
+    <div class="stats-grid" style="grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
+      <div class="stat-card">
+        <div class="stat-label">Cobrado</div>
+        <div class="stat-value green" style="font-size:17px">${fmt(cobrado)}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Por Cobrar</div>
+        <div class="stat-value red" style="font-size:17px">${fmt(pendiente)}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Gastos</div>
+        <div class="stat-value red" style="font-size:17px">${fmt(totalGastos)}</div>
+      </div>
+    </div>
+    <div style="background:rgba(100,150,255,0.08);border:1px solid rgba(100,150,255,0.25);border-radius:10px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div>
+        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px">Flujo Real (cobrado − gastos)</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px">Dinero que realmente entró</div>
+      </div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:${flujoCaja>=0?'#2ecc71':'#e74c3c'}">${flujoCaja>=0?'+':'−'}${fmt(Math.abs(flujoCaja))}</div>
+    </div>
+    <div style="background:rgba(245,166,35,0.06);border:1px solid rgba(245,166,35,0.2);border-radius:10px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px">Flujo Potencial (si cobras todo)</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px">Incluye pendientes por cobrar</div>
+      </div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:${flujoPotencial>=0?'var(--accent)':'#e74c3c'}">${flujoPotencial>=0?'+':'−'}${fmt(Math.abs(flujoPotencial))}</div>
+    </div>
+  `;
+}
+
+// ==================== FLUJO DE CAJA (sección) ====================
+function renderFlujo() {
+  const todos = getTodos();
+  const mesesAll = [...new Set(todos.map(r=>r.fecha.substring(0,7)))].sort();
+
+  const datosMeses = mesesAll.map(m => {
+    const regs = todos.filter(r=>r.fecha.substring(0,7)===m);
+    const ingresos = regs.filter(r=>r.tipo==='ingreso');
+    const gastos = regs.filter(r=>r.tipo==='gasto');
+    const cobrado = ingresos.filter(r=>r.pago && r.pago!=='PENDIENTE').reduce((s,r)=>s+r.monto,0);
+    const pendiente = ingresos.filter(r=>!r.pago||r.pago==='PENDIENTE').reduce((s,r)=>s+r.monto,0);
+    const totalG = gastos.reduce((s,r)=>s+r.monto,0);
+    const flujo = cobrado - totalG;
+    return { mes: m, cobrado, pendiente, gastos: totalG, flujo };
+  });
+
+  // Flujo acumulado
+  let acumulado = 0;
+  const conAcum = datosMeses.map(d => ({ ...d, acumulado: (acumulado += d.flujo) }));
+
+  // Últimos 12 meses para gráfico
+  const ultimos12 = conAcum.slice(-12);
+  const maxFlujo = Math.max(...ultimos12.map(d=>Math.abs(d.flujo)), 1);
+
+  const barrasHTML = ultimos12.map(d => {
+    const h = Math.max((Math.abs(d.flujo)/maxFlujo)*130, d.flujo!==0?3:1);
+    const color = d.flujo >= 0 ? '#2ecc71' : '#e74c3c';
+    const label = formatMesLabel(d.mes).split(' ')[0];
+    return `
+      <div class="chart-bar-group">
+        <div style="display:flex;justify-content:center;align-items:flex-end;height:140px;">
+          <div class="bar bar-bal" style="height:${h}px;background:${color};width:70%;position:relative;">
+            <div class="chart-tooltip">${formatMesLabel(d.mes)}<br>Flujo: ${d.flujo>=0?'+':''}${fmt(d.flujo)}<br>Cobrado: ${fmt(d.cobrado)}<br>Gastos: ${fmt(d.gastos)}</div>
+          </div>
+        </div>
+        <div class="chart-label">${label}</div>
+      </div>`;
+  }).join('');
+
+  // Tabla resumen por mes (últimos 6)
+  const tabla = conAcum.slice(-6).reverse().map(d => `
+    <div style="display:grid;grid-template-columns:auto 1fr 1fr 1fr 1fr;gap:6px 10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:12px;">
+      <div style="font-weight:700;color:var(--accent);white-space:nowrap">${formatMesLabel(d.mes)}</div>
+      <div style="text-align:right"><div style="color:var(--muted);font-size:10px">Cobrado</div><div style="color:#2ecc71;font-weight:600">${fmt(d.cobrado)}</div></div>
+      <div style="text-align:right"><div style="color:var(--muted);font-size:10px">Pendiente</div><div style="color:#e74c3c;font-weight:600">${d.pendiente>0?fmt(d.pendiente):'—'}</div></div>
+      <div style="text-align:right"><div style="color:var(--muted);font-size:10px">Gastos</div><div style="color:#e74c3c;font-weight:600">${fmt(d.gastos)}</div></div>
+      <div style="text-align:right"><div style="color:var(--muted);font-size:10px">Flujo</div><div style="color:${d.flujo>=0?'#2ecc71':'#e74c3c'};font-weight:700;font-family:'Bebas Neue',sans-serif;font-size:15px">${d.flujo>=0?'+':'−'}${fmt(Math.abs(d.flujo))}</div></div>
+    </div>
+  `).join('');
+
+  const acumActual = conAcum.length > 0 ? conAcum[conAcum.length-1].acumulado : 0;
+  const pendienteTotal = datosMeses.reduce((s,d)=>s+d.pendiente, 0);
+
+  document.getElementById('flujo-content').innerHTML = `
+    <div class="card" style="border-color:rgba(100,150,255,0.3)">
+      <div class="card-title">💵 Posición de Caja Actual</div>
+      <div class="stats-grid" style="grid-template-columns:1fr 1fr;gap:10px">
+        <div class="stat-card" style="background:rgba(46,204,113,0.06);border-color:rgba(46,204,113,0.2)">
+          <div class="stat-label">Flujo Acumulado Real</div>
+          <div class="stat-value ${acumActual>=0?'green':'red'}" style="font-size:22px">${acumActual>=0?'+':'−'}${fmt(Math.abs(acumActual))}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px">Cobrado − Gastos (histórico)</div>
+        </div>
+        <div class="stat-card" style="background:rgba(231,76,60,0.06);border-color:rgba(231,76,60,0.2)">
+          <div class="stat-label">Pendiente por Cobrar</div>
+          <div class="stat-value red" style="font-size:22px">${fmt(pendienteTotal)}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px">Total histórico sin cobrar</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📊 Flujo Mensual · Últimos ${ultimos12.length} meses</div>
+      <div class="chart-bars">${barrasHTML}</div>
+      <div class="chart-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#2ecc71"></div>Positivo</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#e74c3c"></div>Negativo</div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-top:8px;text-align:center">Flujo = Cobrado real − Gastos del mes</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📋 Detalle Últimos 6 Meses</div>
+      ${tabla}
+    </div>
+  `;
 }
 
 // ==================== PIN ====================
@@ -1946,6 +2111,7 @@ function showSection(name) {
   if (name === 'registros') renderRegistros();
   if (name === 'resumen') renderMesChips();
   if (name === 'clientes') renderClientes();
+  if (name === 'flujo') renderFlujo();
 }
 </script>
 </body>
