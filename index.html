@@ -440,9 +440,125 @@
     .form-grid { grid-template-columns: 1fr; }
     .stats-grid { grid-template-columns: 1fr 1fr; }
   }
+  /* PIN OVERLAY */
+  #pin-overlay {
+    position: fixed; inset: 0;
+    background: var(--bg);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+  .pin-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 26px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    margin-bottom: 6px;
+    text-align: center;
+  }
+  .pin-sub {
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    margin-bottom: 36px;
+    text-align: center;
+  }
+  .pin-dots {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    margin-bottom: 32px;
+  }
+  .pin-dot {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    border: 2px solid var(--muted);
+    background: transparent;
+    transition: all 0.15s;
+  }
+  .pin-dot.filled {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .pin-dot.error {
+    background: var(--danger);
+    border-color: var(--danger);
+  }
+  .pin-keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    max-width: 260px;
+    width: 100%;
+    margin: 0 auto;
+  }
+  .pin-btn {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 22px;
+    font-weight: 500;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+  }
+  .pin-btn:active { background: var(--accent); color: #000; transform: scale(0.95); }
+  .pin-btn.pin-del { font-size: 18px; color: var(--muted); }
+  .pin-btn.pin-empty { background: transparent; border-color: transparent; pointer-events: none; }
+  .pin-error-msg {
+    color: var(--danger);
+    font-size: 12px;
+    margin-top: 16px;
+    min-height: 18px;
+    text-align: center;
+  }
+  .pin-change-btn {
+    margin-top: 28px;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    padding: 8px 18px;
+    border-radius: 20px;
+    cursor: pointer;
+  }
 </style>
 </head>
 <body>
+
+<!-- PIN OVERLAY -->
+<div id="pin-overlay">
+  <div class="pin-logo">🚚 TRANSPORTES LUCAS SpA</div>
+  <div class="pin-sub">INGRESA TU PIN DE ACCESO</div>
+  <div class="pin-dots">
+    <div class="pin-dot" id="pd0"></div>
+    <div class="pin-dot" id="pd1"></div>
+    <div class="pin-dot" id="pd2"></div>
+    <div class="pin-dot" id="pd3"></div>
+  </div>
+  <div class="pin-keypad">
+    <button class="pin-btn" onclick="pinPress('1')">1</button>
+    <button class="pin-btn" onclick="pinPress('2')">2</button>
+    <button class="pin-btn" onclick="pinPress('3')">3</button>
+    <button class="pin-btn" onclick="pinPress('4')">4</button>
+    <button class="pin-btn" onclick="pinPress('5')">5</button>
+    <button class="pin-btn" onclick="pinPress('6')">6</button>
+    <button class="pin-btn" onclick="pinPress('7')">7</button>
+    <button class="pin-btn" onclick="pinPress('8')">8</button>
+    <button class="pin-btn" onclick="pinPress('9')">9</button>
+    <div class="pin-btn pin-empty"></div>
+    <button class="pin-btn" onclick="pinPress('0')">0</button>
+    <button class="pin-btn pin-del" onclick="pinDel()">⌫</button>
+  </div>
+  <div class="pin-error-msg" id="pin-error"></div>
+</div>
 
 <header>
   <div class="logo">
@@ -1474,7 +1590,9 @@ function renderResumen() {
     <div class="card">
       <div class="card-title">📤 Exportar</div>
       <button class="btn btn-export" onclick="exportarMes()" style="margin-top:0;margin-bottom:8px">⬇️ Descargar Excel del mes</button>
-      <button class="btn btn-backup" onclick="exportarRespaldo()">💾 Exportar respaldo completo</button>
+      <button class="btn btn-backup" onclick="exportarRespaldo()" style="margin-bottom:8px">💾 Exportar respaldo completo</button>
+      <button class="btn btn-import" onclick="exportarDatosLocales()" style="margin-bottom:8px">📱 Exportar datos guardados en este dispositivo</button>
+      <button class="btn" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--muted);margin-top:0" onclick="cambiarPin()">🔒 Cambiar PIN de acceso</button>
     </div>
 
     <div class="card">
@@ -1729,6 +1847,94 @@ function importarRespaldo(event) {
   };
   reader.readAsText(file);
 }
+
+// ==================== PIN ====================
+const PIN_STORAGE_KEY = 'tlspa_pin';
+const PIN_SESSION_KEY = 'tlspa_auth';
+let _pinBuffer = '';
+
+function _getPin() {
+  return localStorage.getItem(PIN_STORAGE_KEY) || '1234';
+}
+
+function _pinUpdateDots() {
+  for (let i = 0; i < 4; i++) {
+    const dot = document.getElementById('pd' + i);
+    dot.classList.toggle('filled', i < _pinBuffer.length);
+    dot.classList.remove('error');
+  }
+}
+
+function pinPress(d) {
+  if (_pinBuffer.length >= 4) return;
+  _pinBuffer += d;
+  _pinUpdateDots();
+  if (_pinBuffer.length === 4) {
+    setTimeout(_pinVerify, 120);
+  }
+}
+
+function pinDel() {
+  if (_pinBuffer.length === 0) return;
+  _pinBuffer = _pinBuffer.slice(0, -1);
+  _pinUpdateDots();
+  document.getElementById('pin-error').textContent = '';
+}
+
+function _pinVerify() {
+  if (_pinBuffer === _getPin()) {
+    sessionStorage.setItem(PIN_SESSION_KEY, '1');
+    document.getElementById('pin-overlay').style.display = 'none';
+    document.getElementById('pin-error').textContent = '';
+  } else {
+    document.querySelectorAll('.pin-dot').forEach(d => {
+      d.classList.remove('filled');
+      d.classList.add('error');
+    });
+    document.getElementById('pin-error').textContent = 'PIN incorrecto, intenta de nuevo';
+    setTimeout(() => {
+      document.querySelectorAll('.pin-dot').forEach(d => d.classList.remove('error'));
+      document.getElementById('pin-error').textContent = '';
+    }, 800);
+    _pinBuffer = '';
+  }
+}
+
+function cambiarPin() {
+  const actual = prompt('Ingresa tu PIN actual:');
+  if (actual === null) return;
+  if (actual !== _getPin()) { showToast('PIN incorrecto', true); return; }
+  const nuevo = prompt('Nuevo PIN (4 dígitos):');
+  if (!nuevo || !/^\d{4,}$/.test(nuevo)) { showToast('PIN inválido (mínimo 4 dígitos)', true); return; }
+  const confirmar = prompt('Confirma el nuevo PIN:');
+  if (nuevo !== confirmar) { showToast('Los PINs no coinciden', true); return; }
+  localStorage.setItem(PIN_STORAGE_KEY, nuevo);
+  showToast('✅ PIN cambiado!');
+}
+
+function exportarDatosLocales() {
+  const raw = localStorage.getItem('transportes_lucas_spa_v1');
+  if (!raw) { showToast('No hay datos locales guardados', true); return; }
+  let datos;
+  try { datos = JSON.parse(raw); } catch { showToast('Error leyendo datos locales', true); return; }
+  if (!datos || datos.length === 0) { showToast('No hay datos locales guardados', true); return; }
+  const blob = new Blob([JSON.stringify({ version: '1.0', fecha: new Date().toISOString().split('T')[0], total: datos.length, datos }, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'datos_iphone_' + new Date().toISOString().split('T')[0] + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('✅ ' + datos.length + ' registros exportados!');
+}
+
+// Verificar PIN al cargar
+(function() {
+  if (sessionStorage.getItem(PIN_SESSION_KEY) === '1') {
+    document.getElementById('pin-overlay').style.display = 'none';
+  }
+  // Si el overlay ya tiene display:flex del CSS, no hacer nada; si autenticado, ocultarlo
+})();
 
 // ==================== NAV ====================
 function showSection(name) {
