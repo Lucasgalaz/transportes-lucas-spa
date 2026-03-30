@@ -1745,7 +1745,7 @@ function marcarPagado(id) {
 // ==================== EDICIÓN ====================
 function abrirEdicion(id) {
   const todos = getTodos();
-  const r = todos.find(x => x.id === id);
+  const r = todos.find(x => x.id == id);
   if (!r) return;
 
   document.getElementById('edit-id').value = r.id;
@@ -1781,7 +1781,7 @@ async function guardarEdicion() {
 
   // Buscar en TODOS los registros (incluye históricos)
   const todos = getTodos();
-  const reg = todos.find(r => r.id === id);
+  const reg = todos.find(r => r.id == id);
   if (!reg) { showToast('Registro no encontrado', true); return; }
 
   const { _docId, ...regBase } = reg;
@@ -1801,10 +1801,10 @@ async function guardarEdicion() {
   } else {
     // Registro histórico o de localStorage — guardar versión editada en Firebase
     const guardados = cargarDatos();
-    const enLocal = guardados.find(r => r.id === id);
+    const enLocal = guardados.find(r => r.id == id);
     if (enLocal) {
       // Está en localStorage, actualizar ahí
-      guardarDatos(guardados.map(r => r.id === id ? actualizado : r));
+      guardarDatos(guardados.map(r => r.id == id ? actualizado : r));
     } else {
       // Es histórico — subir a Firebase (reemplazará al histórico via getTodos)
       const ok = await guardarEnFirebase(actualizado);
@@ -1994,16 +1994,6 @@ function renderFlujo() {
           <div style="font-size:10px;color:var(--muted);margin-top:4px">Total histórico sin cobrar</div>
         </div>
       </div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">📊 Flujo Mensual · Últimos ${ultimos12.length} meses</div>
-      <div class="chart-bars">${barrasHTML}</div>
-      <div class="chart-legend">
-        <div class="legend-item"><div class="legend-dot" style="background:#2ecc71"></div>Positivo</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#e74c3c"></div>Negativo</div>
-      </div>
-      <div style="font-size:11px;color:var(--muted);margin-top:8px;text-align:center">Flujo = Cobrado real − Gastos del mes</div>
     </div>
 
     <div class="card">
