@@ -1410,8 +1410,7 @@ function renderPendientes(ingresos) {
   }
   var totalPend = pendientes.reduce(function(s,r){ return s+r.monto; }, 0);
   var rows = pendientes.map(function(r) {
-    var esNuevo = !r.id.startsWith('h') && !r.id.startsWith('g');
-    var btnCobrar = esNuevo ? '<button class="btn-pagar" onclick="marcarPagado(\'' + r.id + '\')">✅ Cobrado</button>' : '';
+    var btnCobrar = '<button class="btn-pagar" onclick="marcarPagado(\'' + r.id + '\')">✅ Cobrado</button>';
     return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);gap:10px">'
       + '<div style="flex:1">'
       + '<div style="font-size:13px;font-weight:500">' + r.detalle + '</div>'
@@ -1537,23 +1536,6 @@ function renderResumen() {
       </div>`;
   }).join('');
 
-  // Gráfico de balance mensual
-  const maxBal = Math.max(...datosMeses.map(x=>Math.abs(x.bal)), 1);
-  const balBarrasHTML = datosMeses.map(d => {
-    const h = Math.max((Math.abs(d.bal)/maxBal)*130, d.bal!==0?3:1);
-    const color = d.bal>=0 ? '#2ecc71' : '#e74c3c';
-    const label = formatMesLabel(d.mes).split(' ')[0];
-    return `
-      <div class="chart-bar-group">
-        <div style="display:flex;justify-content:center;align-items:flex-end;height:140px;">
-          <div class="bar bar-bal" style="height:${h}px;background:${color};width:70%;position:relative;">
-            <div class="chart-tooltip">${formatMesLabel(d.mes)}<br>Balance: ${d.bal>=0?'+':'−'}${fmt(Math.abs(d.bal))}<br>Ing: ${fmt(d.ing)}<br>Gas: ${fmt(d.gas)}</div>
-          </div>
-        </div>
-        <div class="chart-label">${label}</div>
-      </div>`;
-  }).join('');
-
   document.getElementById('resumen-content').innerHTML = `
     <div class="stats-grid">
       <div class="stat-card"><div class="stat-label">Ingresos</div><div class="stat-value green">${fmt(totalI)}</div></div>
@@ -1570,14 +1552,6 @@ function renderResumen() {
         <div class="legend-item"><div class="legend-dot" style="background:#e74c3c"></div>Gastos</div>
       </div>
     </div>
-
-    <div class="card">
-      <div class="card-title">📈 Balance Mensual</div>
-      <div class="chart-bars">${balBarrasHTML}</div>
-      <div class="chart-legend">
-        <div class="legend-item"><div class="legend-dot" style="background:#2ecc71"></div>Positivo</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#e74c3c"></div>Negativo</div>
-      </div>
     </div>
 
     <div class="card" id="card-cobros"></div>
@@ -1732,10 +1706,19 @@ function exportarMes() {
 // ==================== MARCAR PAGADO ====================
 function marcarPagado(id) {
   const datos = cargarDatos();
-  const idx = datos.findIndex(r => r.id === id);
-  if (idx === -1) return;
-  datos[idx].pago = 'LISTO';
-  guardarDatos(datos);
+  const idx = datos.findIndex(r => r.id == id);
+  if (idx !== -1) {
+    datos[idx].pago = 'LISTO';
+    guardarDatos(datos);
+  } else {
+    // Registro histórico: buscar en HISTORICO y guardar copia con pago=LISTO en localStorage
+    const hist = HISTORICO.find(r => r.id == id);
+    if (!hist) return;
+    const copia = Object.assign({}, hist, { pago: 'LISTO' });
+    delete copia._docId;
+    datos.push(copia);
+    guardarDatos(datos);
+  }
   actualizarHeaderBalance();
   renderRegistros();
   renderMesChips();
